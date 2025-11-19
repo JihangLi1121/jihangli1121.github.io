@@ -125,23 +125,17 @@ animateOnScroll.forEach(element => {
     observer.observe(element);
 });
 
-// ===== Typing Effect for Hero Title =====
+// ===== Fade-in Effect for Hero Title =====
 const heroTitle = document.querySelector('.hero-title');
 if (heroTitle) {
-    const text = heroTitle.innerHTML;
-    heroTitle.innerHTML = '';
+    heroTitle.style.opacity = '0';
+    heroTitle.style.transform = 'translateY(20px)';
+    heroTitle.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
 
-    let i = 0;
-    const typeWriter = () => {
-        if (i < text.length) {
-            heroTitle.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(typeWriter, 50);
-        }
-    };
-
-    // Start typing effect after a short delay
-    setTimeout(typeWriter, 300);
+    setTimeout(() => {
+        heroTitle.style.opacity = '1';
+        heroTitle.style.transform = 'translateY(0)';
+    }, 300);
 }
 
 // ===== Project Card Tilt Effect (Optional Enhancement) =====
