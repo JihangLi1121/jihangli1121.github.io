@@ -205,6 +205,7 @@ body.dark-mode .navbar.scrolled {
     padding: 6rem 2rem 4rem;
     background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
     position: relative;
+    overflow: hidden;
 }
 
 .hero-content {
@@ -729,6 +730,208 @@ body.dark-mode .navbar.scrolled {
     color: var(--text-secondary);
 }
 
+/* ===== Hobbies & Music Section ===== */
+.hobbies {
+    padding: 6rem 0;
+    background-color: var(--bg-primary);
+}
+
+.hobbies-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+}
+
+/* Music Card */
+.music-card {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.music-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.music-header i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.music-header h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+.music-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.genre-tag {
+    padding: 0.4rem 1rem;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.music-player {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+}
+
+.album-art {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    animation: pulse-album 2s ease-in-out infinite;
+}
+
+@keyframes pulse-album {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.track-info {
+    flex: 1;
+}
+
+.track-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.artist-name {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress {
+    width: 65%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 2px;
+    animation: progress-move 3s ease-in-out infinite;
+}
+
+@keyframes progress-move {
+    0%, 100% {
+        width: 30%;
+    }
+    50% {
+        width: 80%;
+    }
+}
+
+.player-controls {
+    display: flex;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+.player-controls i {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.player-controls i:hover {
+    color: var(--primary-color);
+    transform: scale(1.2);
+}
+
+/* Hobbies Grid */
+.hobbies-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.hobby-card {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+    text-align: center;
+}
+
+.hobby-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-color);
+}
+
+.hobby-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: white;
+}
+
+.hobby-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.hobby-card p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+@media (max-width: 968px) {
+    .hobbies-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .hobbies-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== Footer ===== */
 .footer {
     background-color: var(--bg-secondary);
@@ -871,5 +1074,113 @@ body.dark-mode .navbar.scrolled {
         width: 200px;
         height: 200px;
         font-size: 120px;
+    }
+}
+
+/* ===== Bokeh & Stars Animations ===== */
+
+/* Floating bokeh orbs */
+@keyframes float-orb {
+    0%, 100% {
+        transform: translateY(0) translateX(0) scale(1);
+    }
+    25% {
+        transform: translateY(-30px) translateX(20px) scale(1.1);
+    }
+    50% {
+        transform: translateY(-15px) translateX(-25px) scale(0.95);
+    }
+    75% {
+        transform: translateY(-40px) translateX(15px) scale(1.05);
+    }
+}
+
+/* Floating particles */
+@keyframes float-particle {
+    0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translateY(-25px) translateX(15px);
+        opacity: 0.7;
+    }
+    50% {
+        transform: translateY(-10px) translateX(-20px);
+        opacity: 0.5;
+    }
+    75% {
+        transform: translateY(-35px) translateX(10px);
+        opacity: 0.6;
+    }
+}
+
+/* Star twinkling animation */
+@keyframes twinkle {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Shooting star animations - multiple variants for variety */
+@keyframes shooting-star-0 {
+    0% {
+        opacity: 0;
+        transform: translateX(0) translateY(0);
+    }
+    5% {
+        opacity: 1;
+    }
+    15% {
+        opacity: 1;
+        transform: translateX(250px) translateY(250px);
+        box-shadow: 0 0 10px white, -80px -80px 15px rgba(255, 255, 255, 0.3);
+    }
+    20%, 100% {
+        opacity: 0;
+        transform: translateX(350px) translateY(350px);
+    }
+}
+
+@keyframes shooting-star-1 {
+    0% {
+        opacity: 0;
+        transform: translateX(0) translateY(0);
+    }
+    8% {
+        opacity: 1;
+    }
+    18% {
+        opacity: 1;
+        transform: translateX(300px) translateY(180px);
+        box-shadow: 0 0 8px white, -100px -60px 20px rgba(255, 255, 255, 0.2);
+    }
+    25%, 100% {
+        opacity: 0;
+        transform: translateX(400px) translateY(240px);
+    }
+}
+
+@keyframes shooting-star-2 {
+    0% {
+        opacity: 0;
+        transform: translateX(0) translateY(0);
+    }
+    3% {
+        opacity: 1;
+    }
+    12% {
+        opacity: 1;
+        transform: translateX(200px) translateY(300px);
+        box-shadow: 0 0 12px white, -70px -100px 18px rgba(255, 255, 255, 0.25);
+    }
+    18%, 100% {
+        opacity: 0;
+        transform: translateX(280px) translateY(420px);
     }
 }

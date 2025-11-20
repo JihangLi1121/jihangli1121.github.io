@@ -41,6 +41,11 @@ themeToggle.addEventListener('click', () => {
         themeIcon.classList.add('fa-moon');
         localStorage.setItem('theme', 'light');
     }
+
+    // Update background effect (sun/stars)
+    if (typeof updateBackgroundEffect === 'function') {
+        updateBackgroundEffect();
+    }
 });
 
 // ===== Navbar Scroll Effect =====
@@ -116,7 +121,7 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 // Add fade-in animation to elements
-const animateOnScroll = document.querySelectorAll('.project-card, .interest-card, .skill-category, .resume-section, .contact-card');
+const animateOnScroll = document.querySelectorAll('.project-card, .interest-card, .skill-category, .resume-section, .contact-card, .hobby-card, .music-card');
 
 animateOnScroll.forEach(element => {
     element.style.opacity = '0';
@@ -161,32 +166,128 @@ projectCards.forEach(card => {
     });
 });
 
-// ===== Particle Background Effect (Optional) =====
-function createParticles() {
+// ===== Dynamic Background Effect (Sun/Stars) =====
+function clearBackgroundEffects() {
     const hero = document.querySelector('.hero');
-    const particleCount = 30;
+    const particles = hero.querySelectorAll('.sun-ray, .star');
+    particles.forEach(p => p.remove());
+}
 
-    for (let i = 0; i < particleCount; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'particle';
-        particle.style.cssText = `
+function createSunEffect() {
+    const hero = document.querySelector('.hero');
+
+    // Create soft bokeh/glowing orbs
+    const colors = [
+        'rgba(99, 102, 241, 0.3)',   // Primary purple
+        'rgba(139, 92, 246, 0.25)',  // Secondary purple
+        'rgba(236, 72, 153, 0.2)',   // Pink accent
+        'rgba(59, 130, 246, 0.25)',  // Blue
+        'rgba(167, 139, 250, 0.3)'   // Light purple
+    ];
+
+    for (let i = 0; i < 15; i++) {
+        const orb = document.createElement('div');
+        orb.className = 'sun-ray';
+        const size = Math.random() * 150 + 50;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        orb.style.cssText = `
             position: absolute;
-            width: ${Math.random() * 5 + 2}px;
-            height: ${Math.random() * 5 + 2}px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            width: ${size}px;
+            height: ${size}px;
+            background: radial-gradient(circle, ${color}, transparent 70%);
             border-radius: 50%;
             top: ${Math.random() * 100}%;
             left: ${Math.random() * 100}%;
-            opacity: ${Math.random() * 0.5 + 0.2};
-            animation: float ${Math.random() * 10 + 5}s linear infinite;
+            opacity: ${Math.random() * 0.6 + 0.2};
+            animation: float-orb ${Math.random() * 15 + 10}s ease-in-out infinite;
+            animation-delay: ${Math.random() * 5}s;
+            pointer-events: none;
+            filter: blur(${Math.random() * 20 + 10}px);
+        `;
+        hero.appendChild(orb);
+    }
+
+    // Create smaller floating particles
+    for (let i = 0; i < 25; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'sun-ray';
+        const size = Math.random() * 8 + 4;
+        particle.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.3));
+            border-radius: 50%;
+            top: ${Math.random() * 100}%;
+            left: ${Math.random() * 100}%;
+            opacity: ${Math.random() * 0.5 + 0.3};
+            animation: float-particle ${Math.random() * 8 + 6}s ease-in-out infinite;
+            animation-delay: ${Math.random() * 3}s;
             pointer-events: none;
         `;
         hero.appendChild(particle);
     }
 }
 
-// Uncomment to enable particles
-// createParticles();
+function createStarsEffect() {
+    const hero = document.querySelector('.hero');
+
+    // Create twinkling stars
+    for (let i = 0; i < 50; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 3 + 1;
+        star.style.cssText = `
+            position: absolute;
+            width: ${size}px;
+            height: ${size}px;
+            background: white;
+            border-radius: 50%;
+            top: ${Math.random() * 100}%;
+            left: ${Math.random() * 100}%;
+            opacity: ${Math.random() * 0.8 + 0.2};
+            animation: twinkle ${Math.random() * 3 + 2}s ease-in-out infinite;
+            animation-delay: ${Math.random() * 3}s;
+            pointer-events: none;
+            box-shadow: 0 0 ${size * 2}px rgba(255, 255, 255, 0.5);
+        `;
+        hero.appendChild(star);
+    }
+
+    // Create more shooting stars with varied animations
+    for (let i = 0; i < 8; i++) {
+        const shootingStar = document.createElement('div');
+        shootingStar.className = 'star';
+        const duration = 6 + Math.random() * 6;
+        const delay = Math.random() * 15;
+        shootingStar.style.cssText = `
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            top: ${Math.random() * 40}%;
+            left: ${Math.random() * 80}%;
+            opacity: 0;
+            animation: shooting-star-${i % 3} ${duration}s linear infinite;
+            animation-delay: ${delay}s;
+            pointer-events: none;
+        `;
+        hero.appendChild(shootingStar);
+    }
+}
+
+function updateBackgroundEffect() {
+    clearBackgroundEffects();
+    if (document.body.classList.contains('dark-mode')) {
+        createStarsEffect();
+    } else {
+        createSunEffect();
+    }
+}
+
+// Initialize background effect
+updateBackgroundEffect();
 
 // ===== Copy Email to Clipboard =====
 const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
