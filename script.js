@@ -20,8 +20,8 @@ const themeToggle = document.getElementById('themeToggle');
 const body = document.body;
 const themeIcon = themeToggle.querySelector('i');
 
-// Check for saved theme preference or default to light mode
-const currentTheme = localStorage.getItem('theme') || 'light';
+// Check for saved theme preference or default to dark mode
+const currentTheme = localStorage.getItem('theme') || 'dark';
 if (currentTheme === 'dark') {
     body.classList.add('dark-mode');
     themeIcon.classList.remove('fa-moon');
@@ -219,26 +219,6 @@ function createSunEffect() {
     }
 }
 
-@keyframes float-shape {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg);
-    }
-    50% {
-        transform: translateY(-30px) rotate(180deg);
-    }
-}
-
-@keyframes slide-line {
-    0%, 100% {
-        transform: translateX(0);
-        opacity: 0.2;
-    }
-    50% {
-        transform: translateX(50px);
-        opacity: 0.5;
-    }
-}
-
 function createStarsEffect() {
     const hero = document.querySelector('.hero');
 
@@ -291,13 +271,95 @@ function updateBackgroundEffect() {
     clearBackgroundEffects();
     if (document.body.classList.contains('dark-mode')) {
         createStarsEffect();
-    } else {
-        createSunEffect();
     }
+    // No background effect in light mode - only water drops
+}
+
+// ===== Canvas Rain Effect =====
+function initRainEffect() {
+    const hero = document.querySelector('.hero');
+
+    // Add glass overlay
+    const glassOverlay = document.createElement('div');
+    glassOverlay.className = 'glass-overlay';
+    hero.insertBefore(glassOverlay, hero.firstChild);
+
+    // Create canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'rain-canvas';
+    hero.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size
+    function resizeCanvas() {
+        canvas.width = hero.offsetWidth;
+        canvas.height = hero.offsetHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Rain drops array
+    const raindrops = [];
+    const numberOfDrops = 150;
+
+    // Create raindrop objects
+    for (let i = 0; i < numberOfDrops; i++) {
+        raindrops.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            length: Math.random() * 20 + 10,
+            speed: Math.random() * 5 + 5,
+            opacity: Math.random() * 0.5 + 0.3
+        });
+    }
+
+    // Get rain color based on theme
+    function getRainColor() {
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        if (isDarkMode) {
+            return 'rgba(255, 255, 255, '; // White for dark mode
+        } else {
+            return 'rgba(0, 153, 204, '; // Blue for light mode
+        }
+    }
+
+    // Animation loop
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const rainColor = getRainColor();
+
+        raindrops.forEach(drop => {
+            // Draw raindrop
+            ctx.beginPath();
+            ctx.moveTo(drop.x, drop.y);
+            ctx.lineTo(drop.x, drop.y + drop.length);
+            ctx.strokeStyle = rainColor + drop.opacity + ')';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Update position
+            drop.y += drop.speed;
+
+            // Reset drop when it falls off screen
+            if (drop.y > canvas.height) {
+                drop.y = -drop.length;
+                drop.x = Math.random() * canvas.width;
+            }
+        });
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
 }
 
 // Initialize background effect
 updateBackgroundEffect();
+
+// Initialize rain effect
+initRainEffect();
 
 // ===== Copy Email to Clipboard =====
 const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
