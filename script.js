@@ -176,56 +176,66 @@ function clearBackgroundEffects() {
 function createSunEffect() {
     const hero = document.querySelector('.hero');
 
-    // Create soft bokeh/glowing orbs
-    const colors = [
-        'rgba(99, 102, 241, 0.3)',   // Primary purple
-        'rgba(139, 92, 246, 0.25)',  // Secondary purple
-        'rgba(236, 72, 153, 0.2)',   // Pink accent
-        'rgba(59, 130, 246, 0.25)',  // Blue
-        'rgba(167, 139, 250, 0.3)'   // Light purple
-    ];
-
-    for (let i = 0; i < 15; i++) {
-        const orb = document.createElement('div');
-        orb.className = 'sun-ray';
-        const size = Math.random() * 150 + 50;
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        orb.style.cssText = `
+    // Create P3R-style sharp geometric shapes
+    for (let i = 0; i < 8; i++) {
+        const shape = document.createElement('div');
+        shape.className = 'sun-ray';
+        const size = Math.random() * 100 + 50;
+        shape.style.cssText = `
             position: absolute;
             width: ${size}px;
             height: ${size}px;
-            background: radial-gradient(circle, ${color}, transparent 70%);
-            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.05);
             top: ${Math.random() * 100}%;
             left: ${Math.random() * 100}%;
-            opacity: ${Math.random() * 0.6 + 0.2};
-            animation: float-orb ${Math.random() * 15 + 10}s ease-in-out infinite;
+            opacity: 1;
+            animation: float-shape ${Math.random() * 20 + 10}s linear infinite;
             animation-delay: ${Math.random() * 5}s;
             pointer-events: none;
-            filter: blur(${Math.random() * 20 + 10}px);
+            clip-path: polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%);
+            border: 2px solid rgba(0, 212, 255, 0.1);
         `;
-        hero.appendChild(orb);
+        hero.appendChild(shape);
     }
 
-    // Create smaller floating particles
-    for (let i = 0; i < 25; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'sun-ray';
-        const size = Math.random() * 8 + 4;
-        particle.style.cssText = `
+    // Create sharp line accents
+    for (let i = 0; i < 5; i++) {
+        const line = document.createElement('div');
+        line.className = 'sun-ray';
+        line.style.cssText = `
             position: absolute;
-            width: ${size}px;
-            height: ${size}px;
-            background: radial-gradient(circle, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.3));
-            border-radius: 50%;
+            width: ${Math.random() * 200 + 100}px;
+            height: 2px;
+            background: rgba(0, 212, 255, 0.2);
             top: ${Math.random() * 100}%;
             left: ${Math.random() * 100}%;
-            opacity: ${Math.random() * 0.5 + 0.3};
-            animation: float-particle ${Math.random() * 8 + 6}s ease-in-out infinite;
+            opacity: 1;
+            animation: slide-line ${Math.random() * 15 + 10}s ease-in-out infinite;
             animation-delay: ${Math.random() * 3}s;
             pointer-events: none;
+            transform: rotate(${Math.random() * 45}deg);
         `;
-        hero.appendChild(particle);
+        hero.appendChild(line);
+    }
+}
+
+@keyframes float-shape {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-30px) rotate(180deg);
+    }
+}
+
+@keyframes slide-line {
+    0%, 100% {
+        transform: translateX(0);
+        opacity: 0.2;
+    }
+    50% {
+        transform: translateX(50px);
+        opacity: 0.5;
     }
 }
 
