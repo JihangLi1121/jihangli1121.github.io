@@ -901,6 +901,12 @@ body.is-locked { overflow: hidden; }
   padding: var(--sp-5) 0;
   gap: var(--sp-3) var(--sp-4);
 }
+
+/* The hero title sat right on the reticle frame — and the frame sat right on
+   the content edge, because both used --gutter. Pull the frame outward so the
+   type breathes inside it, and widen the page gutter a little at mid widths. */
+:root { --gutter: clamp(1.5rem, 5vw, 4.5rem); }
+.hero__reticle { inset: var(--sp-5) calc(var(--gutter) * 0.42); }
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
@@ -2283,12 +2289,13 @@ body.is-locked { overflow: hidden; }
         "Improved Gaussian-splatting rendering efficiency by 30%, accelerating playback of reconstructed hazard scenes."
       ],
       links: [{ label: "AIEA Lab — RobustAVs project page", href: "https://aiea-lab.github.io/project/robustavs/" }],
-      media: ["img", "video"],
-      images: [
-        { gen: "splat", seed: 51, cap: "Reconstructed intersection — splat cloud, 3 views merged", note: "assets/gsplat/scene-01.png" },
-        { gen: "splat", seed: 52, cap: "Hazard playback frame after the 30% render speedup", note: "assets/gsplat/scene-02.png" }
-      ],
-      video: { src: "assets/gsplat/demo.mp4", gen: "splat", seed: 53 }
+      /* No media: the lab's imagery is not mine to publish, so this record is
+         the write-up, the metrics and a link to the project page. An empty
+         media list makes the case study end after the text — no empty stage,
+         no placeholder pretending to be a result. */
+      media: [],
+      images: [],
+      video: null
     }
   ];
   var byId = {};
@@ -2307,7 +2314,11 @@ body.is-locked { overflow: hidden; }
   }
 
   function cardHTML(p) {
-    var mediaBadge = p.media.indexOf("3d") > -1 ? "3D viewer · images · clip"
+    /* The badge advertises what opening the card gets you. A record with no
+       media still opens — to the write-up — so say that instead of listing
+       media it does not have. */
+    var mediaBadge = !p.media.length ? "Read the record"
+                   : p.media.indexOf("3d") > -1 ? "3D viewer · images · clip"
                    : p.media.indexOf("plot") > -1 ? "Curve · images · clip"
                    : "Images · clip";
     return '<div class="card ' + p.span + ' rv" data-cats="' + p.cats.join(" ") + '">' +
@@ -2651,11 +2662,16 @@ body.is-locked { overflow: hidden; }
             }).join("") + "</div></div>" : "") +
           "</aside>" +
         "</div>" +
-        '<div class="stage">' +
-          '<div class="stage__hd"><p class="eyebrow" style="flex:0 0 auto"><b>Stage</b> media</p>' +
-            '<div class="tabs" role="tablist" aria-label="Media type">' + tabs + "</div></div>" +
-          panels +
-        "</div>" +
+        /* Some records have no media of their own. Rather than show an empty
+           stage or a placeholder standing in for work that does not exist,
+           the case study simply ends after the write-up. */
+        (p.media.length
+          ? '<div class="stage">' +
+              '<div class="stage__hd"><p class="eyebrow" style="flex:0 0 auto"><b>Stage</b> media</p>' +
+                '<div class="tabs" role="tablist" aria-label="Media type">' + tabs + "</div></div>" +
+              panels +
+            "</div>"
+          : "") +
       "</div>";
   }
 

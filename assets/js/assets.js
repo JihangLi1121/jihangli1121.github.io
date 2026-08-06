@@ -20,6 +20,22 @@ window.CU_ASSETS = {
       meta: "171 frames · 4 fps · H.264 · 13 MB"
     }
   },
+  launchmail: {
+    images: [
+      { src: "assets/media/launchmail-workflow.jpg",
+        cap: "Workflow builder — agent block, AI reply split, and the three branches it feeds" },
+      { src: "assets/media/launchmail-agents.jpg",
+        cap: "Agent console — trust level, pacing, permissions and approval quality" },
+      { src: "assets/media/launchmail-login.jpg",
+        cap: "Sign-in — the product's front door" }
+    ],
+    video: {
+      src: "assets/media/launchmail-tour.mp4",
+      poster: "assets/media/launchmail-tour.jpg",
+      cap: "UI tour — workflow builder, agent console, sign-in (stills, not a screen recording)",
+      meta: "Demo workspace · synthetic data"
+    }
+  },
   doom: {
     images: [
       { src: "assets/media/doom-2.jpg",  cap: "Deadly Corridor — approach, enemies on both walls" },
