@@ -896,9 +896,13 @@ body.is-locked { overflow: hidden; }
 /* The spec/media row must never be squeezed to one word per line. */
 .pcard__spec, .pcard__media { white-space: nowrap; }
 
-/* Footer sat tight against the rule above it and its own last line. */
+/* Footer sat tight against the rule above it and its own last line.
+   It also carries .wrap, but its own `padding` shorthand set the horizontal
+   value to 0 and so cancelled .wrap's gutter — which is why the name pressed
+   against the rail and the timestamp ran to the right edge. Name the gutter
+   here rather than zeroing it. */
 .foot {
-  padding: var(--sp-5) 0;
+  padding: var(--sp-5) var(--gutter);
   gap: var(--sp-3) var(--sp-4);
 }
 
@@ -907,6 +911,22 @@ body.is-locked { overflow: hidden; }
    type breathes inside it, and widen the page gutter a little at mid widths. */
 :root { --gutter: clamp(1.5rem, 5vw, 4.5rem); }
 .hero__reticle { inset: var(--sp-5) calc(var(--gutter) * 0.42); }
+
+/* ---- filling the page ----------------------------------------------------
+   Three separate causes of dead space on the right, fixed together. */
+
+/* 1. The project grid is 6 columns. Two third-width cards span 2 each, so the
+      last row used 4 of 6 and left a full third empty. With four specimens the
+      row wants halves: two full-width records, then two side by side. */
+.card--third { grid-column: span 3; }
+
+/* 2. 18px between large cards read as clamped together. */
+.grid { gap: var(--sp-4); }
+
+/* 3. The measure capped at 1180px while the rail already ate 236px, so a wide
+      monitor lost ~500px on the right. Give it more room and centre what is
+      left over, so the slack is shared rather than dumped on one side. */
+.wrap { max-width: 1440px; margin-inline: auto; }
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
@@ -1020,6 +1040,17 @@ body.is-locked { overflow: hidden; }
           integration tests.
         </p>
         <p class="prose">
+          Running underneath both is machine learning and computer vision, mostly in
+          <strong>Python</strong>. I spent eighteen months at UC Santa Cruz's <strong>AIEA Lab</strong> on
+          Gaussian splatting — reconstructing hazardous driving scenes so autonomous
+          vehicles could be tested against them, alongside object-detection work in
+          PyTorch and TensorFlow; the 30% rendering speedup came out of that. More
+          recently I trained PPO agents to play Doom, which turns out to be a cheerful
+          way to learn how much of reinforcement learning is really reward design.
+        </p>
+        <p class="prose">
+          Cell tracking is the same problem wearing a lab coat: find the objects, follow
+          them through time, and be honest about the ones you got wrong.
           I pick up new stacks quickly and I work well either way — inside a team or
           alone with a hard problem and a profiler.
         </p>
@@ -1028,7 +1059,7 @@ body.is-locked { overflow: hidden; }
       <dl class="stat-stack ticks rv">
         <div class="stat"><dt>Current focus</dt><dd>3D lineage<br><small>CellUniverse · C++</small></dd></div>
         <div class="stat"><dt>Graduate GPA</dt><dd>3.97<small> / 4.00</small></dd></div>
-        <div class="stat"><dt>Core languages</dt><dd>C++ · Java<br><small>Python · TypeScript</small></dd></div>
+        <div class="stat"><dt>Core languages</dt><dd>Python · C++<br><small>Java · TypeScript</small></dd></div>
         <div class="stat"><dt>Based in</dt><dd>Irvine<small> California</small></dd></div>
       </dl>
     </div>
