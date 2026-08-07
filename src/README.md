@@ -35,3 +35,8 @@ changes. They need PIL and numpy; nothing else here does.
 `.github/workflows/resume-preview.yml` runs `make_resume_svg.py` in CI, so
 pushing a new PDF to the repo root refreshes the site on its own — see the
 comments at the top of that file.
+
+The committed `resume-preview.svg` is CI's render. poppler formats its output
+slightly differently across versions, so running `make_resume.py` on a laptop
+produces a byte-different but visually identical file. That is churn, not a
+bug — let CI own that one file unless the résumé pipeline itself is changing.
