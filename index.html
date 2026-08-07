@@ -1860,7 +1860,7 @@ kbd {
     "in vec3 vViewPos; in vec3 vCenterV; in vec3 vRadii; in mat3 vRot;",
     "in vec3 vColor; in float vAlpha; in vec2 vQuad;",
     "uniform mat4 uProj;",
-    "uniform float uRim, uFogA, uFogB, uAmb, uGain, uEmis;",
+    "uniform float uRim, uFogA, uFogB, uAmb, uGain, uEmis, uLight;",
     "out vec4 frag;",
     "void main(){",
     "  vec3 D = normalize(vViewPos);",
@@ -1889,14 +1889,30 @@ kbd {
     "  vec3 L = normalize(vec3(0.32, 0.55, 0.78));",
     "  float dif = clamp(dot(N,L), 0.0, 1.0);",
     "  float fres = pow(1.0 - ndv, 2.2);",
+    /* fog is computed first: darkfield sinks far cells into the black ground,
+       brightfield washes them out into the white one, so both need the term */
+    "  float fogD = clamp((-P.z - uFogA) / max(0.001, uFogB - uFogA), 0.0, 1.0);",
+    /* ---- brightfield: the specimen absorbs, it does not emit -------------
+       Optical density follows Beer-Lambert along the chord, so a thick centre
+       goes dark and a thin edge stays clear. The fresnel term *darkens* the
+       silhouette — the Becke line at a refractive-index boundary — where the
+       darkfield path uses it to light one up. Written premultiplied so the
+       page's own white shows through the transparent part. */
+    "  if (uLight > 0.5) {",
+    "    float dens = clamp(0.06 + 1.20*th, 0.0, 1.0);",
+    "    dens = mix(dens, 1.0, 0.42*fres);",
+    "    vec3 stain = vColor * (0.30 + 0.26*dif) + vec3(0.02);",
+    "    float ab = vAlpha * dens * mix(1.0, 0.16, fogD);",
+    "    frag = vec4(stain * ab, ab);",
+    "    return;",
+    "  }",
     /* emission from the interior + a bright membrane at the silhouette */
     "  vec3 col = vColor * (uAmb + 0.40*dif + uEmis*pow(th, 0.75));",
     "  col += vColor * fres * uRim;",
     "  float spec = pow(clamp(dot(reflect(-L,N),V),0.0,1.0), 60.0);",
     "  col += vec3(spec) * 0.12;",
     /* depth cue: far cells sink into the ground, like a z-stack */
-    "  float fog = clamp((-P.z - uFogA) / max(0.001, uFogB - uFogA), 0.0, 1.0);",
-    "  col *= mix(1.0, 0.18, fog);",
+    "  col *= mix(1.0, 0.18, fogD);",
     /* thin edges stay translucent, so cells read as glowing gel not plastic */
     "  float a = vAlpha * clamp(0.26 + 0.90*th, 0.0, 1.0);",
     "  frag = vec4(col * uGain * a, a);",
@@ -2107,7 +2123,7 @@ kbd {
     gl.bindVertexArray(null);
 
     var U = {};
-    ["uView", "uProj", "uPad", "uRim", "uFogA", "uFogB", "uAmb", "uGain", "uEmis"].forEach(function (n) {
+    ["uView", "uProj", "uPad", "uRim", "uFogA", "uFogB", "uAmb", "uGain", "uEmis", "uLight"].forEach(function (n) {
       U[n] = gl.getUniformLocation(pSolid, n);
     });
     var UH = {};
@@ -2171,7 +2187,10 @@ kbd {
       },
       draw: function (view, look) {
         var W = canvas.width, H = canvas.height;
-        var usePost = post && look.bloom > 0 && T.ms;
+        /* Brightfield has nothing to bloom: both passes add light, and adding
+           light to a white ground only erases contrast. */
+        var bright = !!look.light;
+        var usePost = post && look.bloom > 0 && T.ms && !bright;
 
         /* ---- scene ---- */
         gl.bindFramebuffer(gl.FRAMEBUFFER, usePost ? T.ms : null);
@@ -2191,11 +2210,12 @@ kbd {
           gl.uniform1f(U.uAmb, look.amb);
           gl.uniform1f(U.uGain, look.gain);
           gl.uniform1f(U.uEmis, look.emis === undefined ? 0.7 : look.emis);
+          gl.uniform1f(U.uLight, bright ? 1.0 : 0.0);
           gl.uniform1f(U.uFogA, look.fogA);
           gl.uniform1f(U.uFogB, look.fogB);
           gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
 
-          if (look.halo > 0) {
+          if (look.halo > 0 && !bright) {
             gl.depthMask(false);
             gl.blendFunc(gl.ONE, gl.ONE);
             gl.useProgram(pHalo);
@@ -2318,13 +2338,13 @@ kbd {
       R.upload(pop, colOf, view);
       /* softer and glowier than the viewer — this is atmosphere, not an instrument */
       R.draw(view, {
-        rim:  CH.isLight ? 0.85 : 2.00,
-        amb:  CH.isLight ? 0.26 : 0.08,
-        gain: CH.isLight ? 0.74 : 0.90,
-        emis: CH.isLight ? 0.44 : 0.58,
+        light: CH.isLight,
+        /* the emissive numbers are darkfield's; brightfield reads uAlpha and
+           the absorption curve instead, so they are simply unused there */
+        rim: 2.00, amb: 0.08, gain: 0.90, emis: 0.58,
         fogA: dist * 0.95, fogB: dist * 2.5,
-        halo: CH.isLight ? 0.10 : 0.34, haloSize: 2.3,
-        bloom: CH.isLight ? 0.42 : 0.80, bloomThresh: 0.58
+        halo: 0.34, haloSize: 2.3,
+        bloom: 0.80, bloomThresh: 0.58
       });
       raf = REDUCE ? 0 : requestAnimationFrame(stepGL);
     }
@@ -2353,13 +2373,21 @@ kbd {
         c._sr = ((c.a + c.b + c.c) / 3) * c.k * sc;
       });
       pop.sort(function (p, q) { return p._sz - q._sz; });
-      ctx.globalCompositeOperation = CH.isLight ? "source-over" : "lighter";
+      /* Brightfield absorbs, darkfield emits — so the fallback needs both a
+         different blend mode and a different palette, not just a dimmer one. */
+      var bright = CH.isLight;
+      ctx.globalCompositeOperation = bright ? "source-over" : "lighter";
+      var stain = bright ? 0.34 : 1.0;          /* darken the dye so it reads on white */
+      var a0 = bright ? 0.52 : 0.30;            /* dense centre  */
+      var a1 = bright ? 0.24 : 0.13;            /* thinning edge */
       pop.forEach(function (c) {
         var rgb = founderRGB(CU.founder[c.id]);
         var g = ctx.createRadialGradient(c._sx, c._sy, 0, c._sx, c._sy, Math.max(1, c._sr));
-        var col = (rgb[0] * 255 | 0) + "," + (rgb[1] * 255 | 0) + "," + (rgb[2] * 255 | 0);
-        g.addColorStop(0, "rgba(" + col + "," + (0.30 * c.al) + ")");
-        g.addColorStop(0.62, "rgba(" + col + "," + (0.13 * c.al) + ")");
+        var col = (rgb[0] * stain * 255 | 0) + "," +
+                  (rgb[1] * stain * 255 | 0) + "," +
+                  (rgb[2] * stain * 255 | 0);
+        g.addColorStop(0, "rgba(" + col + "," + (a0 * c.al) + ")");
+        g.addColorStop(0.62, "rgba(" + col + "," + (a1 * c.al) + ")");
         g.addColorStop(1, "rgba(" + col + ",0)");
         ctx.fillStyle = g;
         ctx.beginPath(); ctx.arc(c._sx, c._sy, Math.max(1, c._sr), 0, 6.2832); ctx.fill();
@@ -3387,13 +3415,11 @@ kbd {
         var view = orbit(yaw, pitch, dist, asp);
         R.upload(pop, colOf, view);
         R.draw(view, {
-          rim:  CH.isLight ? 0.95 : 1.70,
-          amb:  CH.isLight ? 0.30 : 0.07,
-          gain: CH.isLight ? 0.86 : 0.95,
-          emis: CH.isLight ? 0.52 : 0.68,
+          light: CH.isLight,
+          rim: 1.70, amb: 0.07, gain: 0.95, emis: 0.68,
           fogA: dist * 0.6, fogB: dist * 2.0,
-          halo: CH.isLight ? 0.07 : 0.26, haloSize: 1.9,
-          bloom: CH.isLight ? 0.32 : 0.70, bloomThresh: CH.isLight ? 0.72 : 0.62
+          halo: 0.26, haloSize: 1.9,
+          bloom: 0.70, bloomThresh: 0.62
         });
       } else draw2D();
 
