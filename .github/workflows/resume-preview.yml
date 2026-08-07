@@ -59,10 +59,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p assets/media
-          # Same script the local build runs, so CI and a laptop cannot drift.
-          # It stacks every page into one SVG, which is why resume.html needs no
-          # change when the résumé grows a second page.
-          python3 src/make_resume_svg.py resume.pdf assets/media/resume-preview.svg
+          # Lives under .github/ because it is deployment machinery, not part of
+          # the site. It stacks every page into one SVG, which is why resume.html
+          # needs no change when the résumé grows a second page.
+          python3 .github/scripts/make_resume_svg.py resume.pdf assets/media/resume-preview.svg
           # the raster pipeline this replaced
           rm -f assets/media/resume-preview.png assets/media/resume-preview.jpg
           ls -l resume.pdf assets/media/resume-preview.svg
