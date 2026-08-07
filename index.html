@@ -9,10 +9,22 @@
 <meta name="theme-color" content="#05090B">
 <link rel="canonical" href="https://jihangli1121.github.io/My-website/">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="Jihang Li">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://jihangli1121.github.io/My-website/">
 <meta property="og:title" content="Jihang Li — 3D cell lineage reconstruction & full-stack AI systems">
 <meta property="og:description" content="Jihang Li — MS Computer Science at UC Irvine. 3D cell-lineage reconstruction in C++ on the CellUniverse project, and production AI systems full-stack.">
-<meta property="og:image" content="assets/media/celluniverse-showcase.jpg">
+<meta property="og:image" content="https://jihangli1121.github.io/My-website/assets/media/og-card.jpg">
+<meta property="og:image:secure_url" content="https://jihangli1121.github.io/My-website/assets/media/og-card.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Jihang Li — 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Jihang Li — 3D cell lineage reconstruction & full-stack AI systems">
+<meta name="twitter:description" content="Jihang Li — MS Computer Science at UC Irvine. 3D cell-lineage reconstruction in C++ on the CellUniverse project, and production AI systems full-stack.">
+<meta name="twitter:image" content="https://jihangli1121.github.io/My-website/assets/media/og-card.jpg">
+<meta name="twitter:image:alt" content="Jihang Li — 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305090B'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%236BF2B0' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%236BF2B0'/%3E%3C/svg%3E">
 <script src="assets/js/lineage.js"></script>
 <script src="assets/js/assets.js"></script>
@@ -2288,18 +2300,19 @@ body.is-locked { overflow: hidden; }
       title: "Doom RL Agent", sub: "PPO in VizDoom",
       role: "ML Engineer · Reinforcement Learning · Python", dates: "Sep 2025 — Dec 2025",
       cats: ["ai"],
-      ctx: "Collaborative RL project training PPO agents to play the 1993 game Doom via VizDoom scenarios.",
-      tags: ["Python", "PPO", "Stable-Baselines3", "CUDA", "Docker"],
+      ctx: "Four-person course project (CS 271P) comparing DQN, A2C and PPO on VizDoom, then curriculum-training PPO to clear the Deadly Corridor.",
+      tags: ["Python", "PPO", "Stable-Baselines3", "TensorBoard", "Curriculum learning"],
       metrics: [
-        { n: 300, suffix: "+", k: "Survival steps" },
-        { n: 8, suffix: "×", k: "Improvement" }
+        { n: 8.3, suffix: "×", k: "Over baseline" },
+        { n: 673, suffix: "", k: "Mean reward" }
       ],
       bullets: [
-        "Implemented PPO agents via Stable-Baselines3 across three VizDoom scenarios with increasing enemy complexity.",
-        "Designed a reward-shaping system with survival bonuses, death penalties and kill rewards to guide exploration.",
-        "Applied running-statistics reward normalization to stabilize gradients and accelerate policy convergence.",
-        "Tuned PPO hyperparameters (learning-rate decay, batch size, entropy coefficient), improving survival from ~38 to 300+ steps.",
-        "Containerized training in a GPU-accelerated Docker environment using CUDA 11.8 and docker-compose."
+        "Benchmarked DQN, A2C and PPO from Stable-Baselines3 over 300k timesteps each; PPO won on the basic map at 79.28 mean reward against a 77.23 baseline, while DQN reached 13.88 and A2C 0.94.",
+        "Traced why the value-based methods lost: sparse terminal rewards and a per-step penalty give DQN high TD-error variance, and A2C's large sparse advantage collapses the policy onto one action.",
+        "Built a custom VizDoomGym wrapper over the DoomGame API for Deadly Corridor, whose stock config exposes no HITCOUNT, DAMAGE_TAKEN or AMMO — so reward shaping was impossible without it.",
+        "Shaped a reward of movement + 200·Δhitcount − 10·Δdamage − 5·Δammo, scaled by 0.01 to keep gradients stable.",
+        "Curriculum-trained across five difficulty stages over 560k timesteps, annealing the entropy coefficient from 0.02 as difficulty rose, on a [256,256] CnnPolicy over grayscale 100×160 frames.",
+        "Reached 673.53 ± 835.19 mean reward at skill 5 versus an 80.7 baseline — 8.3× — with a best episode of 2276.52; the wide spread is the agent's real instability, not a rounding artefact."
       ],
       links: [{ label: "GitHub — repository", href: "https://github.com/JihangLi1121" }],
       media: ["plot", "img", "video"],
@@ -2558,7 +2571,7 @@ body.is-locked { overflow: hidden; }
   var lastTrigger = null;
   var teardown = [];
 
-  var TABNAME = { "3d": "3D · oblate spheroids", img: "Images", video: "Clip", plot: "Training curve" };
+  var TABNAME = { "3d": "3D · oblate spheroids", img: "Images", video: "Clip", plot: "Evaluation" };
 
   function staticMetric(m) {
     var v = m.text ? m.text : (m.n + m.suffix);
@@ -2665,8 +2678,12 @@ body.is-locked { overflow: hidden; }
   }
 
   function plotHTML() {
-    return '<div class="frame"><div class="plot-wrap"><canvas id="plotcanvas" aria-label="Training curve: mean episode survival rising from about 38 steps to over 300 steps."></canvas></div>' +
-      '<div class="frame__cap"><em>Mean episode survival across PPO training</em><span>~38 → 300+ steps</span></div></div>';
+    return '<div class="frame"><div class="plot-wrap"><canvas id="plotcanvas" ' +
+      'aria-label="Evaluation results. Basic scenario mean reward over 100 episodes: A2C 0.94, DQN 13.88, ' +
+      'baseline 77.23, PPO 79.28. Deadly Corridor at skill 5 over 20 episodes: baseline 80.7, ' +
+      'curriculum-trained PPO 673.53, best episode 2276.52."></canvas></div>' +
+      '<div class="frame__cap"><em>Measured evaluation — CS 271P final report, Tables 3.1 &amp; 3.3</em>' +
+      "<span>PPO 673.53 vs 80.7 baseline · 8.3×</span></div></div>";
   }
 
   function caseHTML(p) {
@@ -3195,84 +3212,122 @@ body.is-locked { overflow: hidden; }
   /* =====================================================================
      10 · Doom RL — mean episode survival across training
      ===================================================================== */
+  /* Every number below is measured, taken from the CS 271P final report
+     (Tables 3.1 and 3.3). Nothing here is interpolated or invented — the
+     previous version drew a seeded-random curve, which had no business
+     being captioned as a training result. */
+  var DOOM_BASIC = {
+    label: "basic.cfg · mean reward over 100 eval episodes",
+    yMax: 100,
+    bars: [
+      { k: "A2C",      v: 0.94,  lo: 0.93, hi: 0.96 },
+      { k: "DQN",      v: 13.88, lo: -20,  hi: 50 },
+      { k: "Baseline", v: 77.23, ref: true },
+      { k: "PPO",      v: 79.28, lo: 52,   hi: 95, win: true }
+    ]
+  };
+  var DOOM_CORRIDOR = {
+    label: "Deadly Corridor · skill 5 · 20 eval episodes",
+    yMax: 2400,
+    bars: [
+      { k: "Baseline", v: 80.7, ref: true },
+      { k: "PPO",      v: 673.53, sd: 835.19, lo: -104.39, hi: 2276.52, win: true }
+    ]
+  };
+
   function initPlot() {
     var canvas = $("#plotcanvas", caseBody);
     if (!canvas) return;
-    var rnd = mulberry32(90210);
-    var N = 220, pts = [];
-    for (var i = 0; i < N; i++) {
-      var x = i / (N - 1);
-      var base = 38 + 268 * (1 - Math.exp(-x * 3.1));
-      pts.push({ x: x, y: base + (rnd() - 0.5) * (26 + 46 * x), base: base });
-    }
     var alive = true, raf = 0, t0 = performance.now();
+
+    function panel(ctx, P, x0, y0, w, h, prog, light) {
+      var padL = 34, padT = 26, padB = 30;
+      var pw = w - padL - 10, ph = h - padT - padB;
+      var Y = function (v) { return y0 + padT + ph - (Math.max(0, v) / P.yMax) * ph; };
+
+      ctx.font = '9px ui-monospace, Menlo, monospace';
+      ctx.textAlign = "left";
+      ctx.fillStyle = light ? "rgba(20,50,45,.62)" : "rgba(150,180,176,.66)";
+      ctx.fillText(P.label.toUpperCase(), x0 + padL, y0 + 12);
+
+      /* gridlines + axis */
+      var ticks = P.yMax > 200 ? [0, 800, 1600, 2400] : [0, 25, 50, 75, 100];
+      ctx.strokeStyle = light ? "rgba(20,50,45,.13)" : "rgba(140,175,170,.13)";
+      ctx.lineWidth = 1;
+      ctx.textAlign = "right";
+      ticks.forEach(function (v) {
+        var y = Math.round(Y(v)) + 0.5;
+        ctx.beginPath(); ctx.moveTo(x0 + padL, y); ctx.lineTo(x0 + padL + pw, y); ctx.stroke();
+        ctx.fillStyle = light ? "rgba(20,50,45,.5)" : "rgba(150,180,176,.55)";
+        ctx.fillText(String(v), x0 + padL - 6, y + 3);
+      });
+
+      var n = P.bars.length;
+      var slot = pw / n, bw = Math.min(46, slot * 0.5);
+      P.bars.forEach(function (b, i) {
+        var cx = x0 + padL + slot * (i + 0.5);
+        var v = b.v * prog;
+        var top = Y(v), base = Y(0);
+
+        /* observed range, where the report gives one */
+        if (b.hi !== undefined && prog > 0.85) {
+          var a = (prog - 0.85) / 0.15;
+          ctx.strokeStyle = light ? "rgba(20,50,45,.34)" : "rgba(150,180,176,.36)";
+          ctx.beginPath();
+          ctx.moveTo(cx, Y(b.hi)); ctx.lineTo(cx, Y(Math.max(0, b.lo)));
+          ctx.moveTo(cx - 5, Y(b.hi)); ctx.lineTo(cx + 5, Y(b.hi));
+          ctx.moveTo(cx - 5, Y(Math.max(0, b.lo))); ctx.lineTo(cx + 5, Y(Math.max(0, b.lo)));
+          ctx.globalAlpha = a; ctx.stroke(); ctx.globalAlpha = 1;
+        }
+
+        ctx.fillStyle = b.win ? CH.css(0.9)
+          : b.ref ? (light ? "rgba(20,50,45,.34)" : "rgba(150,180,176,.32)")
+          : (light ? "rgba(20,50,45,.2)" : "rgba(150,180,176,.2)");
+        ctx.fillRect(cx - bw / 2, top, bw, Math.max(1, base - top));
+
+        if (b.ref) {                                   /* baseline reference line */
+          ctx.strokeStyle = light ? "rgba(20,50,45,.4)" : "rgba(150,180,176,.4)";
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath(); ctx.moveTo(x0 + padL, Y(b.v)); ctx.lineTo(x0 + padL + pw, Y(b.v)); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        ctx.textAlign = "center";
+        ctx.fillStyle = light ? "rgba(20,50,45,.7)" : "rgba(150,180,176,.72)";
+        ctx.fillText(b.k, cx, y0 + padT + ph + 13);
+        ctx.fillStyle = b.win ? CH.css(1) : (light ? "rgba(20,50,45,.85)" : "rgba(215,232,229,.85)");
+        ctx.fillText(b.v.toFixed(2), cx, Math.max(y0 + padT + 9, top - 5));
+      });
+    }
 
     function draw(prog) {
       if (!alive) return;
       var m = fit(canvas), ctx = m.ctx, w = m.w, h = m.h;
       var light = CH.isLight;
-      var padL = 46, padR = 16, padT = 18, padB = 26;
-      var pw = w - padL - padR, ph = h - padT - padB;
-      var yMax = 360;
-      var X = function (x) { return padL + x * pw; };
-      var Y = function (v) { return padT + ph - (v / yMax) * ph; };
-
       ctx.fillStyle = light ? "#EFF2ED" : "#05090B";
       ctx.fillRect(0, 0, w, h);
 
-      ctx.strokeStyle = light ? "rgba(20,50,45,.14)" : "rgba(140,175,170,.13)";
-      ctx.lineWidth = 1;
-      ctx.font = '10px ui-monospace, Menlo, monospace';
-      ctx.fillStyle = light ? "rgba(20,50,45,.55)" : "rgba(150,180,176,.6)";
-      ctx.textAlign = "right";
-      [0, 100, 200, 300].forEach(function (v) {
-        var y = Math.round(Y(v)) + 0.5;
-        ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(w - padR, y); ctx.stroke();
-        ctx.fillText(String(v), padL - 8, y + 3);
-      });
-      ctx.textAlign = "left";
-      ctx.fillText("EPISODES →", padL, h - 8);
-      ctx.textAlign = "right";
-      ctx.fillText("SURVIVAL STEPS", w - padR, padT - 6);
-      ctx.textAlign = "left";
-
-      var cut = Math.max(2, Math.floor(N * prog));
-
-      /* noisy band */
-      ctx.beginPath();
-      ctx.moveTo(X(pts[0].x), Y(pts[0].y));
-      for (var i = 1; i < cut; i++) ctx.lineTo(X(pts[i].x), Y(pts[i].y));
-      for (var j = cut - 1; j >= 0; j--) ctx.lineTo(X(pts[j].x), Y(pts[j].base));
-      ctx.closePath();
-      ctx.fillStyle = CH.css(light ? 0.12 : 0.14);
-      ctx.fill();
-
-      /* smoothed mean */
-      ctx.beginPath();
-      ctx.moveTo(X(pts[0].x), Y(pts[0].base));
-      for (var k = 1; k < cut; k++) ctx.lineTo(X(pts[k].x), Y(pts[k].base));
-      ctx.strokeStyle = CH.css(0.95);
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      var last = pts[cut - 1];
-      ctx.beginPath(); ctx.arc(X(last.x), Y(last.base), 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = CH.css(1); ctx.fill();
-
-      ctx.fillStyle = light ? "rgba(20,50,45,.7)" : "rgba(190,215,210,.8)";
-      ctx.fillText("~38", X(0) + 6, Y(38) - 8);
-      if (prog > 0.96) ctx.fillText("300+", X(last.x) - 34, Y(last.base) - 10);
+      var stacked = w < 620;
+      if (stacked) {
+        panel(ctx, DOOM_BASIC, 0, 0, w, h / 2, prog, light);
+        panel(ctx, DOOM_CORRIDOR, 0, h / 2, w, h / 2, prog, light);
+      } else {
+        panel(ctx, DOOM_BASIC, 0, 0, w / 2, h, prog, light);
+        panel(ctx, DOOM_CORRIDOR, w / 2, 0, w / 2, h, prog, light);
+        ctx.strokeStyle = light ? "rgba(20,50,45,.13)" : "rgba(140,175,170,.13)";
+        ctx.beginPath(); ctx.moveTo(w / 2 + 0.5, 14); ctx.lineTo(w / 2 + 0.5, h - 20); ctx.stroke();
+      }
     }
 
-    if (REDUCE) { draw(1); }
-    else {
-      (function step(now) {
-        if (!alive) return;
-        var p = clamp((now - t0) / 1100, 0, 1);
-        draw(1 - Math.pow(1 - p, 3));
-        if (p < 1) raf = requestAnimationFrame(step);
-      })(t0);
+    function loop(now) {
+      if (!alive) return;
+      var p = REDUCE ? 1 : Math.min(1, (now - t0) / 900);
+      var e = 1 - Math.pow(1 - p, 3);
+      draw(e);
+      if (p < 1) raf = requestAnimationFrame(loop);
     }
+    if (REDUCE) draw(1); else raf = requestAnimationFrame(loop);
+
     var onResize = function () { draw(1); };
     window.addEventListener("resize", onResize);
     teardown.push(function () {
