@@ -1,0 +1,64 @@
+name: Refresh résumé preview
+
+# resume.html shows a rendered image of the PDF rather than an embedded
+# viewer, because <object>/<iframe> PDF embedding draws an empty box in some
+# browsers while still reporting that it works. The cost of that choice is
+# that the image would go stale whenever the PDF changed — so it is rebuilt
+# here instead, on every push that touches the PDF. Replace the PDF, push,
+# and the page follows on its own.
+
+on:
+  push:
+    paths:
+      - "Jihang_resume_2026.pdf"
+  workflow_dispatch:        # so it can also be run by hand after a rename
+
+permissions:
+  contents: write
+
+concurrency:
+  group: resume-preview
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install renderers
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils imagemagick
+
+      - name: Render every page and stack them
+        run: |
+          set -euo pipefail
+          rm -f /tmp/pg-*.jpg
+          # -r 200 keeps text crisp on a retina display without a huge file
+          pdftoppm -jpeg -jpegopt quality=90 -r 200 Jihang_resume_2026.pdf /tmp/pg
+          pages=$(ls /tmp/pg-*.jpg | wc -l | tr -d ' ')
+          echo "rendered $pages page(s)"
+          mkdir -p assets/media
+          if [ "$pages" -eq 1 ]; then
+            cp /tmp/pg-*.jpg assets/media/resume-preview.jpg
+          else
+            # a multi-page résumé becomes one tall image, so the page needs no
+            # change to display it
+            convert $(ls /tmp/pg-*.jpg | sort -V) -append \
+              -quality 90 -interlace Plane assets/media/resume-preview.jpg
+          fi
+          ls -l assets/media/resume-preview.jpg
+
+      - name: Commit if it changed
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/media/resume-preview.jpg
+          if git diff --cached --quiet; then
+            echo "preview already current"
+          else
+            git commit -m "Refresh résumé preview from the PDF [skip ci]"
+            git push
+          fi
