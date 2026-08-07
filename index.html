@@ -1074,6 +1074,75 @@ kbd {
   /* paper has no links, so name the destination */
   a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #54605d; }
 }
+
+
+/* ===== contact form ================================================== */
+.cform {
+  margin-top: var(--sp-5);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: var(--sp-4);
+}
+.cform__hd {
+  font-family: var(--mono); font-size: var(--fs-1); letter-spacing: .2em;
+  text-transform: uppercase; color: var(--muted-2);
+  display: flex; align-items: center; gap: var(--sp-3);
+  margin: 0 0 var(--sp-4);
+}
+.cform__hd::after { content: ""; flex: 1 1 auto; height: 1px; background: var(--line); }
+
+.cform__grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--sp-3) var(--sp-4); }
+.fld--wide { grid-column: 1 / -1; }
+.fld { margin: 0; display: flex; flex-direction: column; gap: .45rem; }
+.fld label {
+  font-family: var(--mono); font-size: var(--fs-1); letter-spacing: .18em;
+  text-transform: uppercase; color: var(--muted-2);
+}
+.fld input, .fld textarea, .fld select {
+  width: 100%; background: var(--ground); color: var(--text);
+  border: 1px solid var(--line-2); border-radius: 0;
+  padding: .7rem .8rem; font-size: var(--fs-3);
+  transition: border-color .25s ease, background-color .3s ease;
+}
+.fld textarea { resize: vertical; min-height: 7.5rem; line-height: 1.55; }
+.fld input:hover, .fld textarea:hover, .fld select:hover { border-color: var(--muted-2); }
+.fld input:focus, .fld textarea:focus, .fld select:focus { border-color: var(--accent); }
+/* :invalid matches an empty required field immediately, which would paint an
+   untouched form red. :user-invalid only matches once the writer has actually
+   interacted and left it wrong. Browsers without it simply skip the rule. */
+.fld input:user-invalid, .fld textarea:user-invalid { border-color: var(--ch-b); }
+
+/* chevron drawn in currentColor, so it is correct in both fields */
+.sel { position: relative; display: block; }
+.sel select { appearance: none; -webkit-appearance: none; padding-right: 2.2rem; }
+.sel::after {
+  content: ""; position: absolute; right: .95rem; top: 50%; pointer-events: none;
+  width: .42rem; height: .42rem; margin-top: -.3rem;
+  border-right: 1px solid var(--muted); border-bottom: 1px solid var(--muted);
+  transform: rotate(45deg);
+}
+
+.cform__hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+.cform__foot {
+  margin-top: var(--sp-4); display: flex; align-items: center;
+  gap: var(--sp-4); flex-wrap: wrap;
+}
+#cf-send[data-sending] { opacity: .6; pointer-events: none; }
+#cf-send:disabled { opacity: .6; cursor: default; }
+.cform__status {
+  margin: 0; font-family: var(--mono); font-size: var(--fs-1);
+  letter-spacing: .12em; text-transform: uppercase; color: var(--muted-2);
+}
+.cform__status[data-kind="ok"] { color: var(--accent); }
+.cform__status[data-kind="bad"] { color: var(--ch-b); }
+.cform__status a { color: inherit; }
+
+@media (max-width: 720px) {
+  .cform__grid { grid-template-columns: minmax(0,1fr); }
+  .cform { padding: var(--sp-3); }
+}
+@media print { .cform { display: none; } }
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
@@ -1401,6 +1470,54 @@ kbd {
         </div>
       </div>
     </div>
+
+    <form class="cform ticks rv" id="cform" method="POST" action="https://script.google.com/macros/s/AKfycbyGkTLr9BWe_PtK0wJB6FY4ouZRPlnYRr_kIL1CssiuZJ_Xc2aTd_B9SqdHbpX5ZE4Jdg/exec">
+      <p class="cform__hd">Or write from here</p>
+      <div class="cform__grid">
+        <p class="fld">
+          <label for="cf-name">Name</label>
+          <input id="cf-name" name="name" type="text" autocomplete="name"
+                 maxlength="120" required>
+        </p>
+        <p class="fld">
+          <label for="cf-email">Email</label>
+          <input id="cf-email" name="email" type="email" autocomplete="email"
+                 maxlength="200" required>
+        </p>
+        <p class="fld fld--wide">
+          <label for="cf-subject">Topic</label>
+          <span class="sel">
+            <select id="cf-subject" name="subject">
+              <option>Role</option>
+              <option>Research</option>
+              <option>Collaboration</option>
+              <option>Other</option>
+            </select>
+          </span>
+        </p>
+        <p class="fld fld--wide">
+          <label for="cf-message">Message</label>
+          <textarea id="cf-message" name="message" rows="5" maxlength="4000" required></textarea>
+        </p>
+      </div>
+
+      <!-- Off-screen rather than display:none, because some bots skip hidden
+           fields but fill everything they can see in the DOM. A human never
+           reaches it: it is out of the tab order and hidden from the a11y tree. -->
+      <div class="cform__hp" aria-hidden="true">
+        <label for="cf-company">Company</label>
+        <input id="cf-company" name="company" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="cform__foot">
+        <button class="btn btn--solid" type="submit" id="cf-send">
+          Send
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor"
+               stroke-width="1.4" aria-hidden="true"><path d="M2 7h10M7.5 2.5 12 7l-4.5 4.5"></path></svg>
+        </button>
+        <p class="cform__status" id="cf-status" role="status" aria-live="polite"></p>
+      </div>
+    </form>
   </div>
 </section>
 
@@ -3929,6 +4046,105 @@ kbd {
       on(function (e) { if (e.matches) settle(); });
     }
   })();
+
+/* =====================================================================
+   Contact form — posts to a Google Apps Script that mails Jihang directly.
+
+   The endpoint answers with readable JSON across origins (verified: the
+   response carries access-control-allow-origin, and sending text/plain keeps
+   it a simple request so no preflight is involved). That means the form can
+   report what actually happened rather than assume it worked.
+
+   Every failure still ends somewhere useful: if the request cannot be made or
+   the script refuses it, the status line turns into a mailto: link carrying
+   whatever was typed, so a message is never silently lost.
+   ===================================================================== */
+(function contactForm() {
+  var form = $("#cform");
+  if (!form) return;
+
+  var btn = $("#cf-send");
+  var out = $("#cf-status");
+  var f = {
+    name: $("#cf-name"),
+    email: $("#cf-email"),
+    subject: $("#cf-subject"),
+    message: $("#cf-message"),
+    company: $("#cf-company")          /* honeypot */
+  };
+  var sending = false;
+
+  /* The script's error codes are for me; these are for whoever is writing. */
+  var HUMAN = {
+    "missing fields": "A message and an email address are needed.",
+    "bad email": "That email address does not look right.",
+    "rate limited": "Too many messages in the last hour."
+  };
+
+  function say(text, kind) {
+    out.textContent = text;
+    out.setAttribute("data-kind", kind || "");
+  }
+
+  /* A dead end is worse than an error, so failures hand back a prefilled
+     mail link rather than just apologising. */
+  function fallback(text) {
+    say(text + " ", "bad");
+    var a = document.createElement("a");
+    a.href = "mailto:lijihang21@gmail.com" +
+      "?subject=" + encodeURIComponent(f.subject.value || "Message") +
+      "&body=" + encodeURIComponent(f.message.value || "");
+    a.textContent = "Send it as email instead";
+    out.appendChild(a);
+  }
+
+  function done() {
+    sending = false;
+    btn.disabled = false;
+    btn.removeAttribute("data-sending");
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (sending) return;
+    /* let the browser show its own field-level messages first */
+    if (form.reportValidity && !form.reportValidity()) return;
+
+    sending = true;
+    btn.disabled = true;
+    btn.setAttribute("data-sending", "1");
+    say("Sending…");
+
+    fetch(form.action, {
+      method: "POST",
+      /* text/plain keeps this a simple request — an application/json body
+         would trigger a preflight that Apps Script does not answer */
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({
+        name: f.name.value,
+        email: f.email.value,
+        subject: f.subject.value,
+        message: f.message.value,
+        company: f.company.value
+      })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) {
+          var to = f.email.value;
+          form.reset();
+          say("Sent. I will reply to " + to + ".", "ok");
+        } else {
+          fallback(HUMAN[j && j.error] || "That did not go through.");
+        }
+        done();
+      })
+      .catch(function () {
+        fallback("That did not go through.");
+        done();
+      });
+  });
+})();
 
   $$('a[href^="#"]').forEach(function (a) {
     a.addEventListener("click", function (e) {
