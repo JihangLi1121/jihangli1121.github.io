@@ -25,10 +25,26 @@ file is not — put changes in `parts/` or in the `.bak`.
 | `extract_lineage.py` | packs a CellUniverse solver run into `lineage_data.js` (14 bytes per cell-frame) |
 | `make_mip.py` | maximum-intensity projections from the confocal TIFF stack |
 | `lm_mock.py` | a mock API that lets LaunchMail render with synthetic data for screenshots |
+| `docx2pdf.py` | converts the résumé `.docx` to `resume.pdf` — see below |
 
 `extract_lineage.py` and `make_mip.py` read data that lives outside this repo
 (the CellUniverse output directory) and only need re-running if that data
 changes. They need PIL and numpy; nothing else here does.
+
+## Producing resume.pdf from the .docx
+
+The résumé is authored in Word format but there is no Word or LibreOffice on
+this machine, and Pages drops the tab stops the layout depends on — labels run
+into values, dates into the text before them. `docx2pdf.py` reads the docx's own
+formatting (page size, margins, indents, spacing, borders, tab stops, the bullet
+glyph, bold/italic/size) and rewrites it as CSS for headless Chrome, which
+prints real vector text with embedded fonts and live hyperlinks.
+
+```bash
+python3 src/docx2pdf.py ~/path/to/Jihang_Li_Resume.docx resume.pdf
+```
+
+Then push `resume.pdf` and the workflow below does the rest.
 
 ## The résumé is the exception
 
