@@ -979,6 +979,101 @@ body.is-locked { overflow: hidden; }
   width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
   box-shadow: 0 0 8px var(--accent); flex: none;
 }
+
+/* ---- reading position on the z-rail ---- */
+.rail__prog {
+  position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+  background: linear-gradient(to bottom, var(--accent) var(--p, 0%), transparent var(--p, 0%));
+  opacity: .5; pointer-events: none;
+}
+@media (max-width: 900px) {
+  .rail__prog {
+    top: auto; bottom: 0; left: 0; right: 0; width: auto; height: 2px;
+    background: linear-gradient(to right, var(--accent) var(--p, 0%), transparent var(--p, 0%));
+  }
+}
+
+/* ---- footer additions ---- */
+.foot__src { color: var(--muted); text-underline-offset: 3px; }
+.foot__src:hover { color: var(--accent); }
+.foot__end { display: inline-flex; align-items: center; gap: .8rem; }
+.kbd-hint { display: inline-flex; gap: .2rem; align-items: center; }
+kbd {
+  font-family: var(--mono); font-size: 10px; line-height: 1;
+  border: 1px solid var(--line-2); border-bottom-width: 2px;
+  padding: .22rem .3rem; color: var(--muted); background: var(--panel);
+}
+.kbd-hint:hover kbd { color: var(--text); border-color: var(--accent); }
+
+/* ---- command palette ---- */
+.pal {
+  position: fixed; inset: 0; z-index: 200; display: grid;
+  place-items: start center; padding: 12vh var(--sp-3) var(--sp-3);
+  background: rgba(var(--ground-rgb), .72);
+}
+.pal[hidden] { display: none; }
+.pal__box {
+  width: min(600px, 100%); background: var(--panel); border: 1px solid var(--line-2);
+  box-shadow: var(--shadow); display: flex; flex-direction: column; max-height: 70vh;
+}
+.pal__q {
+  border: 0; border-bottom: 1px solid var(--line); background: transparent;
+  padding: .95rem 1rem; font-size: var(--fs-5); color: var(--text); outline: none;
+}
+.pal__q::placeholder { color: var(--muted-2); }
+.pal__list { overflow: auto; flex: 1 1 auto; }
+.pal__list li {
+  display: flex; align-items: baseline; gap: .8rem; padding: .55rem 1rem; cursor: pointer;
+}
+.pal__list li.is-on { background: var(--panel-2); box-shadow: inset 2px 0 0 var(--accent); }
+.pal__kind {
+  flex: 0 0 5.2rem; font-family: var(--mono); font-size: var(--fs-1);
+  letter-spacing: .16em; text-transform: uppercase; color: var(--muted-2);
+}
+.pal__label { color: var(--text); font-size: var(--fs-4); }
+.pal__empty { padding: .9rem 1rem; color: var(--muted-2); font-size: var(--fs-4); }
+.pal__foot {
+  display: flex; gap: 1.1rem; padding: .55rem 1rem; border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: var(--fs-1); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted-2);
+}
+.pal__foot span { display: inline-flex; align-items: center; gap: .35rem; }
+
+/* ---- print: the page as a document ----
+   Screen chrome is not paper: the fixed rail, the live canvases and every
+   control are dropped, the dark ground is inverted so it does not eat toner,
+   and cards are kept off page breaks. */
+@media print {
+  :root, :root[data-theme="dark"] {
+    --ground: #fff; --panel: #fff; --panel-2: #fff;
+    --line: #c8ccc9; --line-2: #aab0ac;
+    --text: #000; --muted: #26302e; --muted-2: #54605d;
+    --accent: #0B7F63; --accent-rgb: 11,127,99;
+    color-scheme: light;
+  }
+  @page { margin: 14mm; }
+  html, body { background: #fff !important; color: #000 !important; font-size: 10.5pt; }
+  /* .skip is position:fixed, so without this it stamps on every printed page */
+  .rail, .pal, #wash, #case, .filters, .vctl, .vtime, .tabs, .dots, .navbtn,
+  .hero__veil, .hero__reticle, #field-canvas, .scrolltop, .kbd-hint, .skip,
+  video, canvas { display: none !important; }
+  .shell { margin-left: 0 !important; }
+  .wrap { max-width: none !important; padding: 0 !important; }
+  .section { padding: 10pt 0 !important; }
+  .hero { min-height: 0 !important; padding: 0 0 12pt !important; }
+  .rv { opacity: 1 !important; transform: none !important; }
+  /* A timeline entry can be taller than the space left on a page; holding it
+     whole just pushes it and leaves the rest of the sheet blank. Cards and
+     stats are short enough to keep intact. */
+  .card, .stat { break-inside: avoid; page-break-inside: avoid; }
+  /* the nowrap that protects these on screen clips them in a print column */
+  .pcard__spec, .pcard__media { white-space: normal; }
+  /* keep an eyebrow with the heading it introduces */
+  h1, h2, .h-sec, .eyebrow { break-after: avoid; page-break-after: avoid; }
+  .section-hd { break-inside: avoid; page-break-inside: avoid; }
+  /* paper has no links, so name the destination */
+  a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 8pt; color: #54605d; }
+}
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
@@ -1030,6 +1125,8 @@ body.is-locked { overflow: hidden; }
     </div>
     <p class="rail__meta">Irvine, CA<br>MCS · UC Irvine<br>Exp. Dec 2026</p>
   </div>
+  <div class="rail__prog" id="railprog" role="progressbar" aria-label="Reading position"
+       aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
 </nav>
 
 <div class="shell">
@@ -1306,14 +1403,28 @@ body.is-locked { overflow: hidden; }
 
 <footer class="wrap foot">
   <span>Jihang Li · Portfolio 2026</span>
-  <span>Rendered live — no libraries, no external requests</span>
-  <span id="footclock">—</span>
+  <span>Rendered live — no libraries, no external requests ·
+    <a class="foot__src" href="https://github.com/JihangLi1121/My-website"
+       target="_blank" rel="noopener noreferrer">read the source</a></span>
+  <span class="foot__end"><button class="kbd-hint" type="button" data-pal-open
+    aria-label="Open the command palette"><kbd>⌘</kbd><kbd>K</kbd></button>
+    <span id="footclock">—</span></span>
 </footer>
 
 </main>
 </div><!-- /.shell -->
 
 <!-- ===================== CASE STUDY DIALOG ============================ -->
+<div class="pal" id="pal" hidden>
+  <div class="pal__box" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input id="palq" class="pal__q" type="text" autocomplete="off" spellcheck="false"
+           placeholder="Jump to a plane, a specimen, or an action…" aria-label="Search"
+           role="combobox" aria-expanded="true" aria-controls="pallist">
+    <ul id="pallist" class="pal__list" role="listbox" aria-label="Results"></ul>
+    <div class="pal__foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>↵</kbd> go</span><span><kbd>esc</kbd> close</span></div>
+  </div>
+</div>
+
 <dialog id="case" aria-modal="true" aria-labelledby="case-title">
   <div class="case" id="case-body"></div>
 </dialog>
@@ -2845,9 +2956,15 @@ body.is-locked { overflow: hidden; }
     teardown = [];
   }
 
-  function openCase(id, trigger) {
+  var currentCaseId = null;
+  function openCase(id, trigger, fromHash) {
     var p = byId[id];
     if (!p) return;
+    currentCaseId = id;
+    /* a specimen should be linkable; the hash is the address of the panel */
+    if (!fromHash) {
+      try { history.pushState(null, "", "#specimen/" + id); } catch (e) {}
+    }
     lastTrigger = trigger || null;
     runTeardown();
     caseBody.innerHTML = caseHTML(p);
@@ -2865,7 +2982,14 @@ body.is-locked { overflow: hidden; }
     if (lastTrigger && document.contains(lastTrigger)) lastTrigger.focus();
     lastTrigger = null;
   }
-  function closeCase() { if (dlg.open) dlg.close(); cleanupCase(); }
+  function closeCase(fromHash) {
+    if (dlg.open) dlg.close();
+    cleanupCase();
+    currentCaseId = null;
+    if (!fromHash && (location.hash || "").indexOf("#specimen/") === 0) {
+      try { history.pushState(null, "", location.pathname + location.search); } catch (e) {}
+    }
+  }
 
   dlg.addEventListener("close", cleanupCase);
   dlg.addEventListener("cancel", function () { window.setTimeout(cleanupCase, 0); });
@@ -3609,6 +3733,174 @@ body.is-locked { overflow: hidden; }
   /* =====================================================================
      11 · Smooth in-page navigation (honours reduced motion)
      ===================================================================== */
+  /* =====================================================================
+     12 · Deep links, command palette, reading position
+     ===================================================================== */
+
+  /* ---- deep-linkable case studies -------------------------------------
+     #specimen/<id> opens that case study on load and on back/forward, so a
+     specimen can be sent as a link instead of "scroll down and click". */
+  (function deepLinks() {
+    var PREFIX = "#specimen/";
+    function idFromHash() {
+      var h = location.hash || "";
+      return h.indexOf(PREFIX) === 0 ? h.slice(PREFIX.length) : null;
+    }
+    function sync(push) {
+      var id = idFromHash();
+      if (id && byId[id]) {
+        if (!dlg.open || currentCaseId !== id) openCase(id, null, true);
+      } else if (dlg.open) {
+        closeCase(true);
+      }
+    }
+    window.addEventListener("hashchange", sync);
+    /* run once the grid exists, so the trigger button can be found */
+    if (idFromHash()) window.setTimeout(sync, 0);
+  })();
+
+  /* ---- reading position on the z-rail ---------------------------------
+     The focal marker already says which plane you are on; this says how far
+     through the specimen you are. */
+  (function readingPosition() {
+    var bar = $("#railprog");
+    if (!bar) return;
+    /* Deliberately synchronous. The rAF-throttled version silently stopped
+       updating whenever rAF was starved, which left the bar pinned at 0 —
+       and the work here is one arithmetic step and one custom-property
+       write, well inside a scroll frame's budget. */
+    function update() {
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - window.innerHeight;
+      var p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+      bar.style.setProperty("--p", (p * 100).toFixed(2) + "%");
+      bar.setAttribute("aria-valuenow", Math.round(p * 100));
+    }
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    /* the grid is built by script, so the page gets taller after first paint */
+    window.setTimeout(update, 0);
+    window.setTimeout(update, 600);
+    update();
+  })();
+
+  /* ---- command palette -------------------------------------------------
+     ⌘K / Ctrl-K, or "/" . Sections, specimens and the few real actions. */
+  (function palette() {
+    var pal = $("#pal"), input = $("#palq"), list = $("#pallist");
+    if (!pal || !input || !list) return;
+
+    var items = [];
+    $$(".rail__link").forEach(function (a) {
+      var t = a.querySelector("span:last-child");
+      items.push({ kind: "Plane", label: t ? t.textContent.trim() : a.textContent.trim(),
+                   run: function () { a.click(); } });
+    });
+    PROJECTS.forEach(function (p) {
+      items.push({ kind: "Specimen", label: p.title + " — " + p.sub,
+                   run: function () { openCase(p.id, null); } });
+    });
+    items.push({ kind: "Action", label: "Résumé — read as a page",
+                 run: function () { location.href = "resume.html"; } });
+    items.push({ kind: "Action", label: "Résumé — download PDF",
+                 run: function () { location.href = "Jihang_resume_2026.pdf"; } });
+    items.push({ kind: "Action", label: "Email Jihang",
+                 run: function () { location.href = "mailto:lijihang21@gmail.com"; } });
+    items.push({ kind: "Action", label: "Source of this page on GitHub",
+                 run: function () { window.open("https://github.com/JihangLi1121/My-website", "_blank", "noopener"); } });
+    items.push({ kind: "Action", label: "Switch channel — 488 / 561",
+                 run: function () { setChannel(root.getAttribute("data-channel") === "b" ? "a" : "b", true); } });
+    items.push({ kind: "Action", label: "Switch field — darkfield / brightfield",
+                 run: function () { setTheme(CH.isLight ? "dark" : "light"); } });
+
+    var shown = [], cur = 0, lastFocus = null;
+
+    function score(it, q) {
+      if (!q) return 0;
+      var s = (it.kind + " " + it.label).toLowerCase();
+      var i = s.indexOf(q);
+      return i < 0 ? -1 : i;
+    }
+    function render() {
+      var q = input.value.trim().toLowerCase();
+      shown = items
+        .map(function (it) { return { it: it, s: score(it, q) }; })
+        .filter(function (r) { return r.s >= 0; })
+        .sort(function (a, b) { return a.s - b.s; })
+        .map(function (r) { return r.it; });
+      if (cur >= shown.length) cur = Math.max(0, shown.length - 1);
+      list.innerHTML = shown.length
+        ? shown.map(function (it, i) {
+            return '<li role="option" aria-selected="' + (i === cur) + '"' +
+              (i === cur ? ' class="is-on"' : "") + ' data-i="' + i + '">' +
+              '<span class="pal__kind">' + esc(it.kind) + "</span>" +
+              '<span class="pal__label">' + esc(it.label) + "</span></li>";
+          }).join("")
+        : '<li class="pal__empty">Nothing matches that.</li>';
+    }
+    function open() {
+      lastFocus = document.activeElement;
+      pal.hidden = false;
+      root.classList.add("pal-open");
+      input.value = ""; cur = 0; render();
+      input.focus();
+    }
+    function close() {
+      pal.hidden = true;
+      root.classList.remove("pal-open");
+      if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+    }
+    function run(i) {
+      var it = shown[i];
+      if (!it) return;
+      close();
+      window.setTimeout(it.run, 10);
+    }
+
+    document.addEventListener("keydown", function (e) {
+      var typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || "")) ||
+                   e.target.isContentEditable;
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault(); pal.hidden ? open() : close(); return;
+      }
+      if (e.key === "/" && !typing && pal.hidden && !dlg.open) { e.preventDefault(); open(); return; }
+      if (pal.hidden) return;
+      if (e.key === "Escape") { e.preventDefault(); close(); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); cur = Math.min(cur + 1, shown.length - 1); render(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); cur = Math.max(cur - 1, 0); render(); }
+      else if (e.key === "Enter") { e.preventDefault(); run(cur); }
+    });
+    input.addEventListener("input", function () { cur = 0; render(); });
+    list.addEventListener("click", function (e) {
+      var li = e.target.closest("li[data-i]");
+      if (li) run(parseInt(li.getAttribute("data-i"), 10));
+    });
+    pal.addEventListener("click", function (e) { if (e.target === pal) close(); });
+    $$("[data-pal-open]").forEach(function (b) {
+      b.addEventListener("click", function () { pal.hidden ? open() : close(); });
+    });
+  })();
+
+  /* ---- printing ------------------------------------------------------
+     Metrics count up from 0 when scrolled into view, so anything still
+     off-screen printed as "0". Settle every counter before the sheet is
+     rendered, and let the reveal animation finish too. */
+  (function printReady() {
+    function settle() {
+      $$("[data-count]").forEach(function (el) {
+        var target = parseFloat(el.getAttribute("data-count")) || 0;
+        el.textContent = fmt(target) + (el.getAttribute("data-suffix") || "");
+      });
+      $$(".rv").forEach(function (el) { el.classList.add("is-in"); });
+    }
+    window.addEventListener("beforeprint", settle);
+    if (window.matchMedia) {
+      var mq = window.matchMedia("print");
+      var on = mq.addEventListener ? mq.addEventListener.bind(mq, "change") : mq.addListener.bind(mq);
+      on(function (e) { if (e.matches) settle(); });
+    }
+  })();
+
   $$('a[href^="#"]').forEach(function (a) {
     a.addEventListener("click", function (e) {
       var id = a.getAttribute("href").slice(1);

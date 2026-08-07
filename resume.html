@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jihang Li — résumé</title>
+<meta name="description" content="Résumé of Jihang Li: MS Computer Science at UC Irvine, 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
+<meta name="theme-color" content="#05090B">
+<link rel="canonical" href="https://jihangli1121.github.io/My-website/resume.html">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Jihang Li">
+<meta property="og:url" content="https://jihangli1121.github.io/My-website/resume.html">
+<meta property="og:title" content="Jihang Li — résumé">
+<meta property="og:description" content="Résumé of Jihang Li: MS Computer Science at UC Irvine, 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
+<meta property="og:image" content="https://jihangli1121.github.io/My-website/assets/media/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://jihangli1121.github.io/My-website/assets/media/og-card.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305090B'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%236BF2B0' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%236BF2B0'/%3E%3C/svg%3E">
+<style>
+:root{
+  --ground:#070B0D; --panel:#0E1518; --line:#1C2A2E; --line-2:#26383D;
+  --text:#DCE8E5; --muted:#93A5A3; --muted-2:#6C7E7C;
+  --accent:#4FF0C1; --accent-rgb:79,240,193;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+  --display:"Avenir Next Condensed","Futura","Trebuchet MS",system-ui,sans-serif;
+  --body:"Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+:root[data-theme="light"]{
+  --ground:#EFF2ED; --panel:#E4E9E3; --line:#C7D2CA; --line-2:#AEBDB2;
+  --text:#101A18; --muted:#4A5C57; --muted-2:#6C7E7C; --accent:#0B7F63; --accent-rgb:11,127,99;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    --ground:#EFF2ED; --panel:#E4E9E3; --line:#C7D2CA; --line-2:#AEBDB2;
+    --text:#101A18; --muted:#4A5C57; --muted-2:#6C7E7C; --accent:#0B7F63; --accent-rgb:11,127,99;
+    color-scheme:light;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--text);font-family:var(--body);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.sheet{max-width:56rem;margin:0 auto;padding:2.5rem 1.5rem 4rem}
+a{color:inherit}
+.topbar{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted-2);margin-bottom:2.2rem}
+.topbar a{text-decoration:none;border:1px solid var(--line);padding:.4rem .7rem;color:var(--muted)}
+.topbar a:hover{color:var(--text);border-color:var(--line-2)}
+.topbar .spacer{margin-left:auto}
+h1{font-family:var(--display);font-size:clamp(2.6rem,7vw,3.8rem);line-height:.98;
+  letter-spacing:-.02em;margin:0 0 .5rem;font-weight:600}
+.contact{font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--muted);
+  display:flex;flex-wrap:wrap;gap:.3rem .9rem;margin-bottom:.4rem}
+.contact a{color:var(--accent);text-decoration:none}
+.contact a:hover{text-decoration:underline}
+h2{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--accent);font-weight:400;margin:2.4rem 0 .9rem;
+  display:flex;align-items:center;gap:.8rem}
+h2::after{content:"";flex:1 1 auto;height:1px;background:var(--line)}
+.entry{margin-bottom:1.5rem;break-inside:avoid}
+.entry__hd{display:flex;flex-wrap:wrap;gap:.2rem 1rem;align-items:baseline}
+.entry__role{font-family:var(--display);font-size:1.3rem;font-weight:600;letter-spacing:-.01em}
+.entry__org{color:var(--muted);font-size:.95rem}
+.entry__when{margin-left:auto;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted-2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.entry__note{color:var(--muted);font-size:.92rem;font-style:italic;margin:.15rem 0 .4rem}
+ul{margin:.5rem 0 0;padding:0;list-style:none;display:grid;gap:.42rem}
+li{position:relative;padding-left:1.15rem;color:var(--muted)}
+li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:1px;background:var(--accent)}
+li b{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.skills{display:grid;grid-template-columns:9.5rem minmax(0,1fr);gap:.45rem 1.2rem;align-items:baseline}
+.skills dt{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
+.skills dd{margin:0;color:var(--muted)}
+.foot{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2);
+  display:flex;flex-wrap:wrap;gap:.5rem 1.2rem;justify-content:space-between}
+
+/* ---------- print: this page exists to be printed ---------- */
+@media print{
+  /* Paper is white and toner is finite: force the light palette regardless of
+     the reader's theme, and let the browser keep our few accent rules. */
+  :root, :root[data-theme="dark"]{
+    --ground:#fff; --panel:#fff; --line:#c8ccc9; --line-2:#aab0ac;
+    --text:#000; --muted:#26302e; --muted-2:#54605d; --accent:#0B7F63; --accent-rgb:11,127,99;
+    color-scheme:light;
+  }
+  @page{margin:14mm}
+  html,body{background:#fff;color:#000;font-size:10.2pt;line-height:1.42}
+  .sheet{max-width:none;margin:0;padding:0}
+  .topbar,.noprint{display:none !important}
+  h1{font-size:26pt;margin-bottom:.25rem}
+  h2{margin:14pt 0 6pt;font-size:8.5pt;letter-spacing:.2em;
+     break-after:avoid;page-break-after:avoid}
+  .entry{margin-bottom:9pt}
+  .entry__role{font-size:12pt}
+  ul{gap:2pt}
+  li{padding-left:10pt}
+  /* A printed page has no hyperlinks, so spell the destination out — but only
+     for external ones, or every internal anchor becomes noise. */
+  /* Spell out destinations in the contact block only. Doing it inside an
+     entry header pushed the date onto its own line, and the profile URLs
+     above already tell a reader where the work lives. */
+  .contact a[href^="http"]::after{content:" (" attr(href) ")";font-size:8pt;color:#54605d;word-break:break-all}
+  .foot{margin-top:10pt;padding-top:5pt}
+}
+</style>
+</head>
+<body>
+<div class="sheet">
+<nav class="topbar"><a href="./">&larr; Back to the site</a><a href="Jihang_resume_2026.pdf" download>Download PDF</a><span class="spacer"></span><a href="#" onclick="window.print();return false">Print / Save as PDF</a></nav>
+<h1>Jihang Li</h1>
+<p class="contact"><span>Irvine, California</span><span>·</span><a href="mailto:lijihang21@gmail.com">lijihang21@gmail.com</a><span>·</span><a href="tel:+15107664360">(510) 766-4360</a><span>·</span><a href="https://www.linkedin.com/in/jihang-li21/">linkedin.com/in/jihang-li21</a><span>·</span><a href="https://github.com/JihangLi1121">github.com/JihangLi1121</a></p>
+<h2>Summary</h2><ul><li>Master of Computer Science student conducting 3D cell-lineage reconstruction research (CellUniverse), designing Monte Carlo optimization and PCA-based cell-division detection algorithms in C++ for biological imaging.</li><li>Software engineer at startup LaunchPath, building an AI-powered sales-outreach email platform end-to-end — Spring Boot and React, RAG-grounded email generation with pgvector, and autonomous LLM agent workflows.</li><li>Quickly learn and master new technologies; effective in both team and self-directed settings.</li></ul>
+<h2>Education</h2>
+<div class="entry"><div class="entry__hd"><span class="entry__role">Master of Computer Science</span><span class="entry__org">University of California, Irvine</span><span class="entry__when">Expected Dec 2026</span></div><p class="entry__note">GPA 3.97 / 4.00</p></div>
+<div class="entry"><div class="entry__hd"><span class="entry__role">B.S., Computer Science</span><span class="entry__org">University of California, Santa Cruz</span><span class="entry__when">Sept 2021 — Dec 2024</span></div><p class="entry__note">GPA 3.67 / 4.00</p></div>
+<h2>Technical skills</h2><dl class="skills">
+<dt>Languages</dt><dd>Python, C / C++, Java, JavaScript, HTML / CSS</dd>
+<dt>Frameworks</dt><dd>Spring Boot, React / TypeScript, Node.js, Django, REST APIs</dd>
+<dt>Developer tools</dt><dd>Git, Google Cloud Platform, Docker, PostgreSQL, VS Code, Visual Studio, PyCharm, IntelliJ, Jupyter Notebook</dd>
+<dt>Libraries</dt><dd>PyTorch, TensorFlow, Stable-Baselines3, Pandas, NumPy, Matplotlib</dd>
+</dl>
+<h2>Experience</h2>
+<div class="entry"><div class="entry__hd"><span class="entry__role">Software Engineer</span><span class="entry__org">LaunchPath — LaunchMail, an AI sales-outreach email platform</span><span class="entry__when">Jun 2026 — Present</span></div><p class="entry__note">Remote, California</p><ul><li>Shipped LaunchMail, an AI sales-email platform (Spring Boot, React/TypeScript, PostgreSQL) with <b>110+</b> REST endpoints.</li><li>Implemented RAG-grounded AI email drafting with pgvector embeddings, unified across <b>5</b> LLM providers.</li><li>Built autonomous outreach agents and a drag-and-drop workflow engine on a webhook-resumed Postgres state machine.</li><li>Engineered deliverability safeguards: sender rotation, randomized throttling, daily caps, and a <b>220</b>-term spam linter.</li><li>Ensured reliability with <b>242</b> integration tests (Testcontainers, WireMock) across <b>33</b> Flyway schema migrations.</li></ul></div>
+<div class="entry"><div class="entry__hd"><span class="entry__role">Undergraduate Researcher</span><span class="entry__org">UC Santa Cruz, AIEA Lab — under Dr. Leilani Gilpin</span><span class="entry__when">Jan 2024 — Jun 2025</span></div><p class="entry__note">Santa Cruz, California</p><ul><li>Researched Gaussian-splatting techniques to reconstruct hazardous driving scenes, improving vehicle response to hazard situations.</li><li>Conducted object-detection research to improve recognition in complex urban areas using machine-learning algorithms.</li><li>Used Python, TensorFlow and PyTorch for experiments, data analysis and model development.</li><li>Collaborated with a multidisciplinary team advancing state-of-the-art autonomous-driving research.</li><li>Improved Gaussian-splatting rendering efficiency by <b>30%</b>, accelerating playback of reconstructed hazard scenes for analysis.</li></ul></div>
+<h2>Projects</h2>
+<div class="entry"><div class="entry__hd"><span class="entry__role">CellUniverse — 3D cell tracking</span><span class="entry__org">Software Engineer · Algorithm · C++ · <a href="https://github.com/vincent-tvincent/CellUniverse">GitHub</a></span><span class="entry__when">Feb 2026 — Present</span></div><p class="entry__note">MCS Keystone &amp; Capstone research led by Dr. Wayne Hayes, on 3D cell-lineage reconstruction.</p><ul><li>Replaced voxel-matrix rendering with analytical inverse-rotation ellipsoid testing, reducing memory use and fixing rendering artifacts.</li><li>Built a Monte Carlo optimizer fitting 3D oblate spheroids to confocal microscopy data via L2 cost minimization.</li><li>Developed PCA-based cell-division detection, clustering real-image bright pixels to find split axes and daughter positions.</li><li>Implemented per-axis normalization and neighbor-exclusion filtering to prevent PCA contamination from adjacent cells.</li><li>Designed two-phase optimization separating cell fitting from split detection to prevent cascading false divisions.</li><li>Contributing to a research manuscript on automated 3D cell-lineage tracking across biological imaging datasets.</li></ul></div>
+<div class="entry"><div class="entry__hd"><span class="entry__role">Doom RL Agent</span><span class="entry__org">Reinforcement Learning · Python · <a href="https://github.com/JihangLi1121/Doom-rl">GitHub</a></span><span class="entry__when">Sep 2025 — Dec 2025</span></div><p class="entry__note">Four-person course project (CS 271P), comparing value-based and policy-gradient agents on VizDoom.</p><ul><li>Benchmarked DQN, A2C and PPO from Stable-Baselines3 over <b>300k</b> timesteps each; PPO led the basic map at <b>79.28</b> mean reward against a <b>77.23</b> baseline.</li><li>Diagnosed why the value-based methods lost: sparse terminal rewards and a per-step penalty give DQN high TD-error variance, while A2C's large sparse advantage collapses the policy.</li><li>Built a custom VizDoomGym wrapper over the DoomGame API, because the stock Deadly Corridor config exposes no HITCOUNT, DAMAGE_TAKEN or AMMO to shape a reward from.</li><li>Shaped a reward of movement + 200·Δhitcount − 10·Δdamage − 5·Δammo, scaled by 0.01 to keep gradients stable.</li><li>Curriculum-trained across five difficulty stages over <b>560k</b> timesteps, annealing the entropy coefficient from 0.02, on a [256,256] CnnPolicy over grayscale 100×160 frames.</li><li>Reached <b>673.53</b> mean reward at the hardest difficulty against an <b>80.7</b> baseline — <b>8.3×</b> — with a best episode of <b>2276.52</b>.</li></ul></div>
+<div class="foot"><span>Jihang Li · résumé 2026</span><span>jihangli1121.github.io/My-website</span></div>
+</div>
+</body>
+</html>
