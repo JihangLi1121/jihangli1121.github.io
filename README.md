@@ -26,9 +26,14 @@ surface is solved analytically per fragment, reproducing the solver's own
 
 ## Deploying to GitHub Pages
 
-Push to `main`, then Settings → Pages → Source: *Deploy from a branch* →
-`main` / `/ (root)`. Live at https://jihangli1121.github.io/My-website/ in
-about a minute.
+This is a GitHub user site — the repo is named `jihangli1121.github.io`, so
+Pages serves it at the root of that domain. Push to `main` and it is live at
+https://jihangli1121.github.io/ in about a minute.
+
+Updating the résumé: drop the PDF in the repo root under any name containing
+"resume" and push. `.github/workflows/resume-preview.yml` renames it to
+`resume.pdf`, re-renders `assets/media/resume-preview.jpg` from every page,
+and commits both.
 
 Limits that matter: 100 MB per file, 1 GB per site, 100 GB/month soft
 bandwidth. This site is ~21 MB. Git LFS files are NOT served by Pages — keep
