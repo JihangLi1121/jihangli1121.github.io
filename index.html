@@ -927,6 +927,14 @@ body.is-locked { overflow: hidden; }
       monitor lost ~500px on the right. Give it more room and centre what is
       left over, so the slack is shared rather than dumped on one side. */
 .wrap { max-width: 1440px; margin-inline: auto; }
+
+/* A <dialog> is hidden by the UA rule `dialog:not([open]) { display: none }`,
+   which any author `display` declaration outranks. #case sets `display: flex`
+   unconditionally, so the closed dialog stayed in the layout: 1080px wide and
+   2px tall — its own top and bottom border — drifting through the flow as a
+   stray horizontal rule across whatever section it landed on. Restore the
+   hidden state; the flex layout still applies while it is open. */
+#case:not([open]) { display: none; }
 </style>
 
 <a class="skip" href="#main">Skip to content</a>
