@@ -3,7 +3,7 @@ name: Refresh résumé
 # The site links one fixed path, resume.pdf, so nothing breaks when the
 # exported file gets a new name. Drop any PDF whose name contains "resume"
 # into the repo root, push, and this normalises it to resume.pdf and rebuilds
-# the preview image that resume.html displays.
+# the vector conversion that resume.html displays.
 #
 # The preview exists because <object>/<iframe> PDF embedding draws an empty
 # box in some browsers while still reporting that it works. The cost of that
@@ -50,29 +50,22 @@ jobs:
           fi
           test -f resume.pdf || { echo "::error::no resume.pdf to render"; exit 1; }
 
-      - name: Install renderers
+      - name: Install the PDF toolchain
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y -qq poppler-utils imagemagick
+          sudo apt-get install -y -qq poppler-utils
 
-      - name: Render every page and stack them
+      - name: Convert the PDF to vector
         run: |
           set -euo pipefail
-          rm -f /tmp/pg-*.png
-          # 300 dpi ≈ 2550px wide, comfortably over 2x at the 880px the page
-          # displays it at. PNG rather than JPEG: JPEG ringing shows up as
-          # mush around every serif, and on a flat white page a 16-colour
-          # palette is visually lossless *and* smaller than the JPEG was.
-          pdftoppm -png -r 300 resume.pdf /tmp/pg
-          pages=$(ls /tmp/pg-*.png | wc -l | tr -d ' ')
-          echo "rendered $pages page(s)"
           mkdir -p assets/media
-          # a multi-page résumé becomes one tall image, so resume.html needs
-          # no change to show it
-          convert $(ls /tmp/pg-*.png | sort -V) -append \
-            -colors 16 -strip assets/media/resume-preview.png
-          rm -f assets/media/resume-preview.jpg
-          ls -l resume.pdf assets/media/resume-preview.png
+          # Same script the local build runs, so CI and a laptop cannot drift.
+          # It stacks every page into one SVG, which is why resume.html needs no
+          # change when the résumé grows a second page.
+          python3 src/make_resume_svg.py resume.pdf assets/media/resume-preview.svg
+          # the raster pipeline this replaced
+          rm -f assets/media/resume-preview.png assets/media/resume-preview.jpg
+          ls -l resume.pdf assets/media/resume-preview.svg
 
       - name: Commit if anything changed
         id: commit
@@ -80,7 +73,8 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A resume.pdf assets/media/resume-preview.png assets/media/resume-preview.jpg
+          git add -A resume.pdf assets/media/resume-preview.svg \
+            assets/media/resume-preview.png assets/media/resume-preview.jpg
           git add -A -- '*.pdf'
           if git diff --cached --quiet; then
             echo "already current"

@@ -1,24 +1,39 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jihang Li — résumé</title>
-<meta name="description" content="Résumé of Jihang Li: MS Computer Science at UC Irvine, 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
-<meta name="theme-color" content="#05090B">
-<link rel="canonical" href="https://jihangli1121.github.io/resume.html">
-<meta property="og:type" content="profile">
-<meta property="og:site_name" content="Jihang Li">
-<meta property="og:url" content="https://jihangli1121.github.io/resume.html">
-<meta property="og:title" content="Jihang Li — résumé">
-<meta property="og:description" content="Résumé of Jihang Li: MS Computer Science at UC Irvine, 3D cell-lineage reconstruction in C++, and production AI systems full-stack.">
-<meta property="og:image" content="https://jihangli1121.github.io/assets/media/og-card.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://jihangli1121.github.io/assets/media/og-card.jpg">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305090B'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%236BF2B0' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%236BF2B0'/%3E%3C/svg%3E">
-<style>
+#!/usr/bin/env python3
+"""Emit resume.html — a viewer for the real résumé PDF.
+
+The PDF is the document that gets sent to recruiters, so it is what the page
+shows. It is *not* embedded with <object>/<iframe>: those draw an empty grey
+box in several browsers while `navigator.pdfViewerEnabled` still reports true,
+so there is no way to detect the failure and fall back. The page shows a
+conversion of the PDF instead, with buttons to open and download the real file.
+
+That conversion is vector, not a page image. The PDF is pure outlines — a few
+thousand glyph paths and no bitmaps — so rasterising it can only throw away
+detail the source already has: at 300 dpi with a 16-colour palette the serifs
+went grey and mushy and the link blue quantised away entirely. The SVG stays
+sharp at any zoom and any display density, keeps the colours, and gzips to
+about a fifth of the PNG it replaces.
+"""
+import io, os, subprocess, sys
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+BASE = _HERE
+SITE = os.path.dirname(_HERE)
+# one fixed path, so renaming the export never breaks the link
+PDF = os.path.join(SITE, "resume.pdf")
+PREVIEW = os.path.join(SITE, "assets", "media", "resume-preview.svg")
+
+subprocess.run([sys.executable, os.path.join(_HERE, "make_resume_svg.py"),
+                PDF, PREVIEW], check=True)
+
+# stale rasters from the previous pipeline
+for old in ("resume-preview.png", "resume-preview.jpg"):
+    stale = os.path.join(SITE, "assets", "media", old)
+    if os.path.exists(stale):
+        os.remove(stale)
+        print("removed stale " + old)
+
+CSS = """
 :root{
   --ground:#070B0D;--panel:#0E1518;--line:#1C2A2E;--line-2:#26383D;
   --text:#DCE8E5;--muted:#93A5A3;--muted-2:#6C7E7C;--accent:#4FF0C1;--accent-rgb:79,240,193;
@@ -78,7 +93,34 @@ body{margin:0;min-height:100vh;background:var(--ground);color:var(--text);
   .stage{padding:0}
   .doc{border:0;box-shadow:none}
 }
-</style>
+"""
+
+SITE_URL = "https://jihangli1121.github.io/"
+TITLE = "Jihang Li — résumé"
+DESC = ("Résumé of Jihang Li: MS Computer Science at UC Irvine, 3D cell-lineage reconstruction "
+        "in C++, and production AI systems full-stack.")
+
+html = """<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<meta name="description" content="__DESC__">
+<meta name="theme-color" content="#05090B">
+<link rel="canonical" href="__URL__resume.html">
+<meta property="og:type" content="profile">
+<meta property="og:site_name" content="Jihang Li">
+<meta property="og:url" content="__URL__resume.html">
+<meta property="og:title" content="__TITLE__">
+<meta property="og:description" content="__DESC__">
+<meta property="og:image" content="__URL__assets/media/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="__URL__assets/media/og-card.jpg">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2305090B'/%3E%3Ccircle cx='16' cy='16' r='8' fill='none' stroke='%236BF2B0' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='2.5' fill='%236BF2B0'/%3E%3C/svg%3E">
+<style>__CSS__</style>
 </head>
 <body>
 
@@ -118,3 +160,11 @@ body{margin:0;min-height:100vh;background:var(--ground);color:var(--text);
 
 </body>
 </html>
+"""
+
+html = (html.replace("__CSS__", CSS).replace("__TITLE__", TITLE)
+            .replace("__DESC__", DESC).replace("__URL__", SITE_URL))
+
+out = os.path.join(SITE, "resume.html")
+io.open(out, "w", encoding="utf-8").write(html)
+print("wrote %s  %.0f KB" % (out, os.path.getsize(out) / 1024))
