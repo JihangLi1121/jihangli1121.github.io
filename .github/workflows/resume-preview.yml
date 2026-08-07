@@ -73,8 +73,10 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A resume.pdf assets/media/resume-preview.svg \
-            assets/media/resume-preview.png assets/media/resume-preview.jpg
+          # naming the retired raster files here would abort the step: git add
+          # fails on a pathspec that matches nothing, and they are gone now.
+          # Staging the directory still records their deletion.
+          git add -A -- resume.pdf assets/media
           git add -A -- '*.pdf'
           if git diff --cached --quiet; then
             echo "already current"
