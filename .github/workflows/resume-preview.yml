@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pages: write        # to request a rebuild after the bot's push
 
 concurrency:
   group: resume-preview
@@ -73,6 +74,7 @@ jobs:
           ls -l resume.pdf assets/media/resume-preview.jpg
 
       - name: Commit if anything changed
+        id: commit
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
@@ -81,7 +83,22 @@ jobs:
           git add -A -- '*.pdf'
           if git diff --cached --quiet; then
             echo "already current"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Refresh résumé and preview [skip ci]"
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # A push made with the default GITHUB_TOKEN does not trigger a Pages
+      # build — it is recorded as errored in 0 ms and the site keeps serving
+      # the old file until somebody pushes by hand. Ask for the build so the
+      # new résumé actually goes live.
+      - name: Ask Pages to rebuild
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent
+          echo "requested a Pages build"
