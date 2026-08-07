@@ -1,17 +1,19 @@
-name: Refresh résumé preview
+name: Refresh résumé
 
-# resume.html shows a rendered image of the PDF rather than an embedded
-# viewer, because <object>/<iframe> PDF embedding draws an empty box in some
-# browsers while still reporting that it works. The cost of that choice is
-# that the image would go stale whenever the PDF changed — so it is rebuilt
-# here instead, on every push that touches the PDF. Replace the PDF, push,
-# and the page follows on its own.
+# The site links one fixed path, resume.pdf, so nothing breaks when the
+# exported file gets a new name. Drop any PDF whose name contains "resume"
+# into the repo root, push, and this normalises it to resume.pdf and rebuilds
+# the preview image that resume.html displays.
+#
+# The preview exists because <object>/<iframe> PDF embedding draws an empty
+# box in some browsers while still reporting that it works. The cost of that
+# choice is a stale image, which is what this removes.
 
 on:
   push:
     paths:
-      - "Jihang_resume_2026.pdf"
-  workflow_dispatch:        # so it can also be run by hand after a rename
+      - "*.pdf"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -26,6 +28,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Normalise the filename
+        run: |
+          set -euo pipefail
+          shopt -s nullglob nocaseglob
+          incoming=()
+          for f in *resume*.pdf; do
+            [ "$f" = "resume.pdf" ] && continue
+            incoming+=("$f")
+          done
+          if [ ${#incoming[@]} -eq 0 ]; then
+            echo "no newly named résumé; using resume.pdf as-is"
+          else
+            if [ ${#incoming[@]} -gt 1 ]; then
+              echo "::warning::several résumé PDFs present (${incoming[*]}); taking the last"
+            fi
+            src="${incoming[${#incoming[@]}-1]}"
+            git mv -f "$src" resume.pdf
+            echo "renamed $src -> resume.pdf"
+          fi
+          test -f resume.pdf || { echo "::error::no resume.pdf to render"; exit 1; }
+
       - name: Install renderers
         run: |
           sudo apt-get update -qq
@@ -35,30 +58,30 @@ jobs:
         run: |
           set -euo pipefail
           rm -f /tmp/pg-*.jpg
-          # -r 200 keeps text crisp on a retina display without a huge file
-          pdftoppm -jpeg -jpegopt quality=90 -r 200 Jihang_resume_2026.pdf /tmp/pg
+          pdftoppm -jpeg -jpegopt quality=90 -r 200 resume.pdf /tmp/pg
           pages=$(ls /tmp/pg-*.jpg | wc -l | tr -d ' ')
           echo "rendered $pages page(s)"
           mkdir -p assets/media
           if [ "$pages" -eq 1 ]; then
             cp /tmp/pg-*.jpg assets/media/resume-preview.jpg
           else
-            # a multi-page résumé becomes one tall image, so the page needs no
-            # change to display it
+            # a multi-page résumé becomes one tall image, so resume.html needs
+            # no change to show it
             convert $(ls /tmp/pg-*.jpg | sort -V) -append \
               -quality 90 -interlace Plane assets/media/resume-preview.jpg
           fi
-          ls -l assets/media/resume-preview.jpg
+          ls -l resume.pdf assets/media/resume-preview.jpg
 
-      - name: Commit if it changed
+      - name: Commit if anything changed
         run: |
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/media/resume-preview.jpg
+          git add -A resume.pdf assets/media/resume-preview.jpg
+          git add -A -- '*.pdf'
           if git diff --cached --quiet; then
-            echo "preview already current"
+            echo "already current"
           else
-            git commit -m "Refresh résumé preview from the PDF [skip ci]"
+            git commit -m "Refresh résumé and preview [skip ci]"
             git push
           fi
