@@ -58,20 +58,21 @@ jobs:
       - name: Render every page and stack them
         run: |
           set -euo pipefail
-          rm -f /tmp/pg-*.jpg
-          pdftoppm -jpeg -jpegopt quality=90 -r 200 resume.pdf /tmp/pg
-          pages=$(ls /tmp/pg-*.jpg | wc -l | tr -d ' ')
+          rm -f /tmp/pg-*.png
+          # 300 dpi ≈ 2550px wide, comfortably over 2x at the 880px the page
+          # displays it at. PNG rather than JPEG: JPEG ringing shows up as
+          # mush around every serif, and on a flat white page a 16-colour
+          # palette is visually lossless *and* smaller than the JPEG was.
+          pdftoppm -png -r 300 resume.pdf /tmp/pg
+          pages=$(ls /tmp/pg-*.png | wc -l | tr -d ' ')
           echo "rendered $pages page(s)"
           mkdir -p assets/media
-          if [ "$pages" -eq 1 ]; then
-            cp /tmp/pg-*.jpg assets/media/resume-preview.jpg
-          else
-            # a multi-page résumé becomes one tall image, so resume.html needs
-            # no change to show it
-            convert $(ls /tmp/pg-*.jpg | sort -V) -append \
-              -quality 90 -interlace Plane assets/media/resume-preview.jpg
-          fi
-          ls -l resume.pdf assets/media/resume-preview.jpg
+          # a multi-page résumé becomes one tall image, so resume.html needs
+          # no change to show it
+          convert $(ls /tmp/pg-*.png | sort -V) -append \
+            -colors 16 -strip assets/media/resume-preview.png
+          rm -f assets/media/resume-preview.jpg
+          ls -l resume.pdf assets/media/resume-preview.png
 
       - name: Commit if anything changed
         id: commit
@@ -79,7 +80,7 @@ jobs:
           set -euo pipefail
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A resume.pdf assets/media/resume-preview.jpg
+          git add -A resume.pdf assets/media/resume-preview.png assets/media/resume-preview.jpg
           git add -A -- '*.pdf'
           if git diff --cached --quiet; then
             echo "already current"
