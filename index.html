@@ -2130,6 +2130,50 @@ kbd {
     ]);
   }
 
+
+  /* =====================================================================
+     Quality guard — WebGL2 being *available* says nothing about it being
+     fast. Watches the frame interval and steps quality down when the machine
+     cannot keep up. Only ever falls; recovering would oscillate.
+     ===================================================================== */
+  function QGuard(onDrop) {
+    var WARMUP = 3;        /* shader compile and the first upload spike here */
+    var FRAMES = 20;       /* enough to ignore a blip on a fast machine */
+    var MS = 1000;         /* ...but never wait longer than this to decide */
+    var MIN = 4;           /* a median of fewer than this is not a median */
+    var seen = 0, acc = [], total = 0, tier = 2;
+
+    return {
+      tier: function () { return tier; },
+      /* Call once per frame with the milliseconds since the previous frame.
+         The interval is used rather than the time spent inside draw() because
+         GPU work is asynchronous: on real hardware draw() returns long before
+         the frame is presented, and only the interval reflects throughput.
+
+         The window closes on frames *or* elapsed time, whichever comes first.
+         A fixed frame count would be the wrong instrument here: 20 frames is
+         a third of a second at 60fps and twenty seconds at 1fps, so the
+         slower the machine the longer it would grind before being helped. */
+      sample: function (ms) {
+        if (tier === 0 || ++seen <= WARMUP) return;
+        acc.push(ms);
+        total += ms;
+        if (acc.length < MIN) return;
+        if (acc.length < FRAMES && total < MS) return;
+        acc.sort(function (a, b) { return a - b; });
+        var median = acc[acc.length >> 1];
+        acc.length = 0;
+        total = 0;
+        /* 45ms is about 22fps — past that the field visibly stutters instead
+           of drifting. 90ms is about 11fps, which is not animation any more. */
+        if (median > (tier === 2 ? 45 : 90)) {
+          tier--;
+          if (onDrop) onDrop(tier, median);
+        }
+      }
+    };
+  }
+
   function CUGL(canvas) {
     var gl = null;
     try {
@@ -2416,6 +2460,23 @@ kbd {
     if (!canvas || !CU) return;
 
     var R = CUGL(canvas);
+
+    /* The hero runs on every page view, so it is the surface that matters if
+       the machine is rendering in software. At tier 1 the post-processing goes
+       and the pixel ratio drops to 1; at tier 0 WebGL is abandoned entirely. */
+    var guard = QGuard(function (tier) {
+      if (tier === 0) to2D();
+    });
+
+    function to2D() {
+      /* A canvas that has handed out a WebGL2 context can never return a 2D
+         one, so the element itself has to be replaced. */
+      var fresh = canvas.cloneNode(false);
+      if (canvas.parentNode) canvas.parentNode.replaceChild(fresh, canvas);
+      canvas = fresh;
+      if (R) { R.destroy(); R = null; }
+      step = step2D;
+    }
     /* Loop a window of the series rather than the whole run: past ~90 frames
        the embryo is a dense mass that composites to a white blob behind the
        type. F0..F1 keeps individual cells and their divisions legible. */
@@ -2441,13 +2502,17 @@ kbd {
     }
 
     function stepGL(now) {
-      var dt = Math.min(64, now - last); last = now;
+      var raw = now - last;                    /* unclamped: the guard needs it */
+      var dt = Math.min(64, raw); last = now;
+      guard.sample(raw);
+      if (!R) { step = step2D; raf = requestAnimationFrame(step); return; }
+      var lean = guard.tier() < 2;
       CH.tick(dt);
       if (!REDUCE) { t += (dt / 1000) * SPEED; yaw += dt * 0.000042; }
       if (t >= F1) t -= (F1 - F0);
 
       var r = canvas.getBoundingClientRect();
-      var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      var dpr = lean ? 1 : Math.min(window.devicePixelRatio || 1, 1.75);
       var asp = R.resize(r.width, r.height, dpr);
       var view = orbit(yaw, -0.22 + Math.sin(yaw * 0.7) * 0.1, dist, asp);
 
@@ -2460,10 +2525,10 @@ kbd {
            the absorption curve instead, so they are simply unused there */
         rim: 2.00, amb: 0.08, gain: 0.90, emis: 0.58,
         fogA: dist * 0.95, fogB: dist * 2.5,
-        halo: 0.34, haloSize: 2.3,
-        bloom: 0.80, bloomThresh: 0.58
+        halo: lean ? 0 : 0.34, haloSize: 2.3,
+        bloom: lean ? 0 : 0.80, bloomThresh: 0.58
       });
-      raf = REDUCE ? 0 : requestAnimationFrame(stepGL);
+      raf = REDUCE ? 0 : requestAnimationFrame(step);
     }
 
     /* ---------- 2D fallback: same data, depth-sorted soft discs ---------- */
@@ -2509,7 +2574,7 @@ kbd {
         ctx.fillStyle = g;
         ctx.beginPath(); ctx.arc(c._sx, c._sy, Math.max(1, c._sr), 0, 6.2832); ctx.fill();
       });
-      raf = REDUCE ? 0 : requestAnimationFrame(step2D);
+      raf = REDUCE ? 0 : requestAnimationFrame(step);
     }
 
     var step = R ? stepGL : step2D;
@@ -3266,6 +3331,13 @@ kbd {
     var tcan = $("#treecanvas", caseBody);
 
     var R = CUGL(canvas);
+
+    /* The viewer is opt-in and can be closed, so it never abandons WebGL — the
+       ellipsoids are the point of the panel. It sheds the post-processing, then
+       stops animating so the machine only works when the reader asks it to. */
+    var guard = QGuard(function (tier) {
+      if (tier === 0) { setPlay(false); if (opt.spin) setOpt("spin", false); }
+    });
     var yaw = 0.62, pitch = -0.30, zoom = 1, raf = 0, alive = true;
     var t = 0, playing = !REDUCE, iso = 0, mode = 0, drag = null, pinch = 0;
     var MODES = ["lineage", "generation", "depth"];
@@ -3526,7 +3598,8 @@ kbd {
 
       if (R) {
         var r = canvas.getBoundingClientRect();
-        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var lean = guard.tier() < 2;
+        var dpr = lean ? 1 : Math.min(window.devicePixelRatio || 1, 2);
         var asp = R.resize(r.width, r.height, dpr);
         var dist = dist0 / zoom;
         var view = orbit(yaw, pitch, dist, asp);
@@ -3535,8 +3608,8 @@ kbd {
           light: CH.isLight,
           rim: 1.70, amb: 0.07, gain: 0.95, emis: 0.68,
           fogA: dist * 0.6, fogB: dist * 2.0,
-          halo: 0.26, haloSize: 1.9,
-          bloom: 0.70, bloomThresh: 0.62
+          halo: lean ? 0 : 0.26, haloSize: 1.9,
+          bloom: lean ? 0 : 0.70, bloomThresh: 0.62
         });
       } else draw2D();
 
@@ -3562,7 +3635,9 @@ kbd {
     var last = performance.now();
     function loop() {
       if (!alive) return;
-      var now = performance.now(), dt = Math.min(64, now - last); last = now;
+      var now = performance.now(), raw = now - last;
+      var dt = Math.min(64, raw); last = now;
+      if (R) guard.sample(raw);
       CH.tick(dt);
       var moved = false;
       if (playing && !REDUCE) {
