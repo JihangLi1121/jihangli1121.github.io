@@ -18,7 +18,9 @@ back to a generated on-theme placeholder, so the page still works standalone.
 
 `assets/js/lineage.js` holds a real run: 171 frames, 15,798 fitted cells, 611
 lineage nodes, quantised to 14 bytes per cell-frame. Regenerate it with
-`extract_lineage.py` pointed at a `FinalLineageTree.csv`.
+`extract_lineage.py` pointed at a `FinalLineageTree.csv` — that script, and the
+rest of the build tooling, lives in `../website-build`, deliberately outside
+this repo so only what the site serves is tracked here.
 
 Cells are ray-traced ellipsoids — the quad is only a bounding box and the
 surface is solved analytically per fragment, reproducing the solver's own
@@ -32,7 +34,7 @@ https://jihangli1121.github.io/ in about a minute.
 
 Updating the résumé: drop the PDF in the repo root under any name containing
 "resume" and push. `.github/workflows/resume-preview.yml` renames it to
-`resume.pdf`, re-renders `assets/media/resume-preview.jpg` from every page,
+`resume.pdf`, re-renders `assets/media/resume-preview.svg` from every page,
 and commits both.
 
 Limits that matter: 100 MB per file, 1 GB per site, 100 GB/month soft
